@@ -62,7 +62,7 @@ function move(state, directionName, announce, render) {
     }
     state.player.x = newX;
     state.player.y = newY;
-    announce(`Posição X ${newX}, Y ${newY}.`);
+    announce(`${newX},${newY}`);
     render();
 }
 
@@ -156,7 +156,7 @@ function handleMenuKey(state, event, announce) {
         const previousState = state.gameState;
         if (previousState === "MENU_PRINCIPAL") {
             state.gameState = "NORMAL";
-            announce(`Posição X ${state.player.x}, Y ${state.player.y}.`);
+            announce(`${state.player.x},${state.player.y}`);
         } else {
             state.gameState = "MENU_PRINCIPAL";
             state.menuIndex = previousState === "MENU_STATUS" ? 0 : 2;
