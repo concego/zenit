@@ -9,9 +9,16 @@
 </head>
 <body>
  <main id="game" aria-labelledby="gameTitle">
- <h1 id="gameTitle" class="sr-only">Zenit — Roguelike</h1>
- <div id="screenReaderAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
- <svg id="gameCanvas" role="img" tabindex="0" aria-label="Mapa do Zenit"></svg>
+  <h1 id="gameTitle" class="sr-only">Zenit — Roguelike</h1>
+  <div id="screenReaderAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
+  <section id="frontEnd" aria-labelledby="frontTitle" aria-describedby="frontDescription frontDetails frontHint" tabindex="0">
+   <h2 id="frontTitle">Zenit</h2>
+   <p id="frontDescription"></p>
+   <ul id="frontOptions" role="menu" aria-label="Menu"></ul>
+   <p id="frontDetails"></p>
+   <p id="frontHint"></p>
+  </section>
+  <svg id="gameCanvas" role="img" tabindex="0" aria-label="Mapa do Zenit" hidden></svg>
  </main>
  <script type="module" src="src/js/game.js"></script>
 </body>
