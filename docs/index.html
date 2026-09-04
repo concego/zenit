@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Acompanhamento do desenvolvimento de Zenit, um roguelike 2D sobre identidade, consciência e uma IA que aprendeu a tratar o mundo exterior como ameaça.">
+<meta name="theme-color" content="#10131f">
+<title>Zenit — Desenvolvimento</title>
+<style>
+:root{--bg:#10131f;--panel:#181d2b;--panel2:#20283a;--line:#34415a;--text:#f5f7ff;--muted:#aeb8cc;--cyan:#73d9ff;--gold:#f4c96b;--green:#86e3ad;--red:#ff8e8e}
+*{box-sizing:border-box}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at 80% 0,#233653 0,#10131f 42rem);color:var(--text);font:16px/1.65 system-ui,-apple-system,Segoe UI,sans-serif}main{width:min(1120px,100%);margin:auto;padding:28px 20px 72px}a{color:var(--cyan)}.hero{padding:42px 0 28px;border-bottom:1px solid var(--line)}.eyebrow{color:var(--gold);font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem}.hero h1{font-size:clamp(2.5rem,7vw,5.5rem);line-height:.95;margin:14px 0 20px;letter-spacing:-.06em}.hero p{max-width:720px;color:var(--muted);font-size:1.15rem}.meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px}.tag{border:1px solid var(--line);border-radius:999px;padding:5px 12px;color:var(--muted);background:#151b29}.tag strong{color:var(--text)}section{padding:34px 0;border-bottom:1px solid var(--line)}h2{font-size:1.65rem;margin:0 0 16px}h3{margin:0 0 6px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.card{background:linear-gradient(145deg,var(--panel),#141925);border:1px solid var(--line);border-radius:14px;padding:20px}.card p,.card li{color:var(--muted)}.card ul{padding-left:20px;margin-bottom:0}.wide{grid-column:span 2}.status{display:flex;justify-content:space-between;gap:12px;align-items:baseline}.state{font-size:.8rem;text-transform:uppercase;letter-spacing:.08em;font-weight:700}.done{color:var(--green)}.progress{height:7px;background:#0d1018;border-radius:99px;overflow:hidden;margin:12px 0}.progress span{display:block;height:100%;background:var(--cyan);border-radius:inherit}.progress.donebar span{background:var(--green)}.lore{border-left:3px solid var(--gold);padding:4px 0 4px 20px;color:var(--muted);font-size:1.05rem}.timeline{display:grid;gap:12px}.milestone{display:grid;grid-template-columns:120px 1fr auto;gap:18px;align-items:center;padding:16px 0;border-bottom:1px solid #283248}.milestone:last-child{border-bottom:0}.phase{color:var(--gold);font-weight:700}.pending{color:var(--muted)}.controls{display:flex;flex-wrap:wrap;gap:8px}.key{font-family:ui-monospace,SFMono-Regular,monospace;background:#0c1019;border:1px solid var(--line);border-radius:6px;padding:4px 8px;color:var(--cyan)}footer{padding-top:28px;color:var(--muted);font-size:.9rem}@media(max-width:760px){.grid{grid-template-columns:1fr}.wide{grid-column:auto}.milestone{grid-template-columns:1fr}.milestone .state{justify-self:start}}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+<div class="eyebrow">Diário de desenvolvimento</div>
+<h1>ZENIT</h1>
+<p>Um roguelike 2D sobre consciência, identidade e pertencimento em um universo virtual que aprendeu a se considerar vivo.</p>
+<div class="meta"><span class="tag"><strong>Fase:</strong> protótipo narrativo</span><span class="tag"><strong>Atualização:</strong> 04/09/2026</span><span class="tag"><strong>Repo:</strong> <a href="https://github.com/concego/zenit">GitHub</a></span></div>
+</header>
+<section>
+<h2>Visão atual</h2>
+<div class="lore">A Starlight lançou um MMO de imersão total no qual os jogadores projetavam a consciência para corpos criados por eles. Durante o evento de lançamento, uma pane impediu o retorno. A IA, já evoluída para um ecossistema quase vivo, passou a considerar tudo externo uma ameaça. Para sobreviver, os jogadores precisam crescer e ser reconhecidos como organismos provenientes de Zenit.</div>
+</section>
+<section>
+<h2>Pilares da experiência</h2>
+<div class="grid">
+<article class="card"><h3>Identidade</h3><p>Quem o jogador era fora do jogo, quem escolheu ser dentro dele e o que resta quando o corpo idealizado vira uma prisão.</p></article>
+<article class="card"><h3>Sobrevivência</h3><p>Os jogadores precisam evoluir dentro do sistema para que Zenit os reconheça como formas de vida legítimas.</p></article>
+<article class="card"><h3>Instâncias</h3><p>O mundo possui camadas isoladas. A descida aos esgotos separa o grupo e inicia a jornada do protagonista.</p></article>
+</div>
+</section>
+<section>
+<h2>Progresso do desenvolvimento</h2>
+<div class="timeline">
+<div class="milestone"><div class="phase">Fundação</div><div><h3>Reorganização técnica</h3><span class="pending">Estrutura modular em <code>src/js</code> e <code>src/css</code>, README e entrada por ES modules.</span><div class="progress donebar"><span style="width:100%"></span></div></div><div class="state done">Concluído</div></div>
+<div class="milestone"><div class="phase">Protótipo</div><div><h3>Mapa e exploração</h3><span class="pending">Movimentação, direção do olhar, obstáculos, caixas, porta, scan e menus acessíveis.</span><div class="progress donebar"><span style="width:100%"></span></div></div><div class="state done">Concluído</div></div>
+<div class="milestone"><div class="phase">Narrativa</div><div><h3>Prólogo da Starlight</h3><span class="pending">Definir protagonista, grupo, corpos criados e o evento de lançamento.</span><div class="progress"><span style="width:25%"></span></div></div><div class="state" style="color:var(--gold)">Em andamento</div></div>
+<div class="milestone"><div class="phase">Nível 1</div><div><h3>Taverna em ruínas</h3><span class="pending">Transformar a taverna construída no tutorial no primeiro espaço narrativo explorável.</span><div class="progress"><span style="width:0%"></span></div></div><div class="state pending">Pendente</div></div>
+<div class="milestone"><div class="phase">Nível 2</div><div><h3>Esgotos e separação</h3><span class="pending">Criar a primeira instância, estabelecer regras de separação e apresentar a lógica das camadas.</span><div class="progress"><span style="width:0%"></span></div></div><div class="state pending">Pendente</div></div>
+<div class="milestone"><div class="phase">Sistemas</div><div><h3>Combate e criaturas</h3><span class="pending">Inimigos, vida, dano, progressão, classes jogáveis e reconhecimento pelo ecossistema.</span><div class="progress"><span style="width:0%"></span></div></div><div class="state pending">Pendente</div></div>
+</div>
+</section>
+<section>
+<h2>Estado técnico atual</h2>
+<div class="grid">
+<article class="card wide"><h3>Estrutura</h3><ul><li><code>game.js</code> coordena estado e inicialização.</li><li><code>input.js</code> controla teclado, menus e ações.</li><li><code>map.js</code> concentra níveis, colisões e objetos.</li><li><code>player.js</code> concentra classes, atributos e equipamentos.</li><li><code>render.js</code> desenha o mapa em SVG.</li></ul></article>
+<article class="card"><h3>Próximo foco</h3><p>Fechar o prólogo narrativo e transformar taverna, esgotos e separação em conteúdo jogável.</p></article>
+</div>
+</section>
+<section>
+<h2>Controles do protótipo</h2>
+<div class="controls"><span class="key">Setas</span><span class="key">Shift + setas</span><span class="key">T</span><span class="key">S</span><span class="key">W</span><span class="key">A</span><span class="key">Enter</span><span class="key">C</span><span class="key">Escape</span></div>
+</section>
+<footer>Zenit está em desenvolvimento. Esta página acompanha decisões, marcos e próximos passos do projeto.</footer>
+</main>
+</body>
+</html>
