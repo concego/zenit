@@ -20,7 +20,7 @@ export function renderGame({ svgCanvas, level, player }) {
     svgCanvas.setAttribute("viewBox", `0 0 ${width * tileSize} ${height * tileSize}`);
     svgCanvas.setAttribute("width", width * tileSize);
     svgCanvas.setAttribute("height", height * tileSize);
-    svgCanvas.setAttribute("aria-label", `Mapa do nível ${level.number}. Jogador na posição X ${player.x}, Y ${player.y}.`);
+    svgCanvas.setAttribute("aria-label", `Mapa do nível ${level.number}. ${player.x},${player.y}.`);
 
     for (let x = 0; x < width; x += 1) {
         for (let y = 0; y < height; y += 1) {
