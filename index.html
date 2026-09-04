@@ -3,21 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Zenit - Roguelike</title>
-    <link rel="stylesheet" href="style.css">
+    <meta name="description" content="Zenit, um roguelike 2D experimental acessível.">
+    <title>Zenit — Roguelike</title>
+    <link rel="stylesheet" href="src/css/style.css">
 </head>
 <body>
-    <div id="screenReaderAnnouncer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
-    <main>
-        <svg id="gameCanvas"></svg>
+    <main id="game" aria-labelledby="gameTitle">
+        <h1 id="gameTitle" class="sr-only">Zenit — Roguelike</h1>
+        <div id="screenReaderAnnouncer" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+        <svg id="gameCanvas" role="img" tabindex="0" aria-label="Mapa do Zenit"></svg>
     </main>
-
-    <!-- Scripts Modulares do Zenit -->
-    <script src="audio.js" defer></script>
-    <script src="player.js" defer></script>
-    <script src="map.js" defer></script>
-    <script src="render.js" defer></script>
-    <script src="input.js" defer></script>
-    <script src="game.js" defer></script>
+    <script type="module" src="src/js/game.js"></script>
 </body>
 </html>
