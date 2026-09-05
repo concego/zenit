@@ -51,20 +51,27 @@ function buildPath(width, height, rng) {
 
 export function rollLootTier(mapTier = MAP_TIERS.COMMON, rng = Math.random, { boss = false, firstRun = false } = {}) {
     const selectedMapTier = resolveMapTier(mapTier) || MAP_TIERS.COMMON;
-    const weights = TIER_LIST.map((candidate) => {
-        const difference = candidate.rank - selectedMapTier.rank;
-        if (difference <= 0) {
-            // O tier do mapa e os tiers abaixo continuam sendo os resultados normais.
-            return candidate.rank === selectedMapTier.rank ? 6 : 3 / (selectedMapTier.rank - candidate.rank + 1);
-        }
-        // Cada nível acima reduz bastante a chance. Bosses só recebem esta vantagem na primeira run.
-        const baseChance = boss && firstRun ? 0.25 : selectedMapTier.aboveTierBaseChance;
-        return baseChance * (0.25 ** (difference - 1));
-    });
-    const total = weights.reduce((sum, weight) => sum + weight, 0);
-    let roll = rng() * total;
-    const selectedIndex = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
-    const selected = TIER_LIST[Math.max(0, selectedIndex)];
+    const normal = TIER_LIST.filter((candidate) => candidate.rank <= selectedMapTier.rank);
+    const higher = TIER_LIST.filter((candidate) => candidate.rank > selectedMapTier.rank);
+    const aboveTierChance = boss && firstRun ? 0.25 : selectedMapTier.aboveTierBaseChance;
+    let selected;
+
+    // Primeiro decide se haverá exceção. Assim a chance configurada é real,
+    // em vez de ser apenas um peso misturado com os tiers normais.
+    if (higher.length && rng() < aboveTierChance) {
+        const weights = higher.map((candidate) => 0.25 ** (candidate.rank - selectedMapTier.rank - 1));
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let roll = rng() * total;
+        const index = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
+        selected = higher[Math.max(0, index)];
+    } else {
+        // Dentro da faixa normal, o tier do mapa é favorecido sobre os anteriores.
+        const weights = normal.map((candidate) => candidate.rank === selectedMapTier.rank ? 6 : 3 / (selectedMapTier.rank - candidate.rank + 1));
+        const total = weights.reduce((sum, weight) => sum + weight, 0);
+        let roll = rng() * total;
+        const index = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
+        selected = normal[Math.max(0, index)];
+    }
     return { tier: selected, exception: selected.rank > selectedMapTier.rank, difference: selected.rank - selectedMapTier.rank };
 }
 
