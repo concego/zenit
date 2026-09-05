@@ -59,7 +59,7 @@ function renderCharacterCreation({ state, elements }) {
     CHARACTER_CLASSES.forEach(({ key }) => option(elements.classSelect, key, getText(lang, `character.classes.${key}.name`)));
     elements.classSelect.value = draft.classKey;
     elements.presetSelect.replaceChildren();
-    getPresetKeys(draft.gender, draft.classKey).forEach((presetKey, index) => option(elements.presetSelect, presetKey, getText(lang, "character.presetOption").replace("{number}", String(index + 1))));
+    getPresetKeys(draft.gender, draft.classKey).forEach((presetKey) => option(elements.presetSelect, presetKey, getText(lang, `character.presets.${presetKey}.description`)));
     elements.presetSelect.value = draft.presetKey;
     elements.characterName.value = draft.name;
     elements.characterClassDescription.textContent = getText(lang, `character.classes.${draft.classKey}.description`);
