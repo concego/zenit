@@ -1,6 +1,8 @@
 // Sons curtos de interface gerados pela Web Audio API, sem arquivos externos.
 
 let audioContext = null;
+let audioEnabled = false;
+let resumePromise = null;
 
 function getAudioContext() {
     if (audioContext) return audioContext;
@@ -14,7 +16,20 @@ function getAudioContext() {
     return audioContext;
 }
 
-function tone(context, frequency, start, duration, type = "sine", volume = 0.06) {
+export async function enableAudio() {
+    const context = getAudioContext();
+    if (!context) return false;
+    if (context.state === "running") { audioEnabled = true; return true; }
+    if (!resumePromise) resumePromise = context.resume().then(() => context.state === "running").catch(() => false);
+    const enabled = await resumePromise;
+    resumePromise = null;
+    audioEnabled = enabled;
+    return enabled;
+}
+
+export function isAudioEnabled() { return audioEnabled; }
+
+function tone(context, frequency, start, duration, type = "sine", volume = 0.07) {
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     oscillator.type = type;
@@ -33,24 +48,15 @@ function schedule(context, sequence) {
     sequence.forEach((item) => tone(context, item.frequency, start + item.offset, item.duration, item.type, item.volume));
 }
 
-function unlockAudio() {
-    const context = getAudioContext();
-    if (context && context.state === "suspended") context.resume().catch(() => {});
-}
-
-window.addEventListener("pointerdown", unlockAudio, { passive: true });
-window.addEventListener("touchstart", unlockAudio, { passive: true });
-window.addEventListener("keydown", unlockAudio, { passive: true });
-
 function play(sequence) {
-    const context = getAudioContext();
-    if (!context) return;
-    if (context.state === "suspended") {
-        context.resume().then(() => schedule(context, sequence)).catch(() => {});
-    } else if (context.state === "running") {
-        schedule(context, sequence);
-    }
+    enableAudio().then((enabled) => {
+        if (enabled) schedule(audioContext, sequence);
+    });
 }
+
+window.addEventListener("pointerdown", () => { enableAudio(); }, { passive: true });
+window.addEventListener("touchstart", () => { enableAudio(); }, { passive: true });
+window.addEventListener("keydown", () => { enableAudio(); }, { passive: true });
 
 export function playMenuScroll() {
     play([{ frequency: 620, offset: 0, duration: 0.07, type: "triangle", volume: 0.06 }]);

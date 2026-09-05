@@ -1,7 +1,7 @@
 import { FRONT_STATES, getFrontMenu } from "./frontend.js";
 import { getText } from "./i18n.js";
 import { getPresetKeys } from "./character.js";
-import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=audio3";
+import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=audio4";
 
 const CHARACTER_FOCUS_COUNT = 6;
 
