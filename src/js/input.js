@@ -52,7 +52,7 @@ function skillDetail(state, skillId) {
     (skill.requirements.skills || []).forEach((requirement) => requirementParts.push(`${skillLabel(state, state.player.skills.skills.find((item) => item.id === requirement.id) || { id: requirement.id })} ${t(state, "skillLevelShort")}: ${requirement.level}`));
     const result = canLearnSkill(state.player.skills, skill.id, state.player.attributes);
     const status = skill.level >= skill.maxLevel ? m(state, "skillMax") : result.allowed ? m(state, "skillReady") : result.reason === "skill_points" ? m(state, "skillNeedPoints") : result.reason === "requirements" ? m(state, "skillNeedRequirements") : "";
-    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)}. ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${status}`;
+    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${status}`;
 }
 
 function frontPosition(state) {
