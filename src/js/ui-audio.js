@@ -6,11 +6,15 @@ function getAudioContext() {
     if (audioContext) return audioContext;
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return null;
-    audioContext = new AudioContextClass();
+    try {
+        audioContext = new AudioContextClass();
+    } catch {
+        return null;
+    }
     return audioContext;
 }
 
-function tone(context, frequency, start, duration, type = "sine", volume = 0.035) {
+function tone(context, frequency, start, duration, type = "sine", volume = 0.06) {
     const oscillator = context.createOscillator();
     const gain = context.createGain();
     oscillator.type = type;
@@ -24,28 +28,35 @@ function tone(context, frequency, start, duration, type = "sine", volume = 0.035
     oscillator.stop(start + duration + 0.02);
 }
 
-function play(sequence) {
-    const context = getAudioContext();
-    if (!context) return;
-    const start = context.currentTime + 0.005;
-    if (context.state === "suspended") context.resume().catch(() => {});
+function schedule(context, sequence) {
+    const start = context.currentTime + 0.01;
     sequence.forEach((item) => tone(context, item.frequency, start + item.offset, item.duration, item.type, item.volume));
 }
 
+function play(sequence) {
+    const context = getAudioContext();
+    if (!context) return;
+    if (context.state === "suspended") {
+        context.resume().then(() => schedule(context, sequence)).catch(() => {});
+    } else if (context.state === "running") {
+        schedule(context, sequence);
+    }
+}
+
 export function playMenuScroll() {
-    play([{ frequency: 620, offset: 0, duration: 0.045, type: "triangle", volume: 0.028 }]);
+    play([{ frequency: 620, offset: 0, duration: 0.07, type: "triangle", volume: 0.06 }]);
 }
 
 export function playMenuConfirm() {
     play([
-        { frequency: 440, offset: 0, duration: 0.07, type: "sine", volume: 0.032 },
-        { frequency: 660, offset: 0.065, duration: 0.105, type: "sine", volume: 0.038 }
+        { frequency: 440, offset: 0, duration: 0.09, type: "sine", volume: 0.07 },
+        { frequency: 660, offset: 0.075, duration: 0.14, type: "sine", volume: 0.085 }
     ]);
 }
 
 export function playMenuCancel() {
     play([
-        { frequency: 520, offset: 0, duration: 0.07, type: "sine", volume: 0.03 },
-        { frequency: 330, offset: 0.065, duration: 0.11, type: "sine", volume: 0.035 }
+        { frequency: 520, offset: 0, duration: 0.09, type: "sine", volume: 0.065 },
+        { frequency: 330, offset: 0.075, duration: 0.14, type: "sine", volume: 0.075 }
     ]);
 }
