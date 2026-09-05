@@ -20,7 +20,7 @@ function characterFocusAnnouncement(state, elements) {
         : getText(state.language, "character.nameFocus");
     if (state.characterFocus === 1) return `${getText(state.language, "character.genderLabel")}: ${elements.genderSelect.options[elements.genderSelect.selectedIndex].textContent}.`;
     if (state.characterFocus === 2) return `${getText(state.language, "character.classLabel")}: ${elements.classSelect.options[elements.classSelect.selectedIndex].textContent}.`;
-    if (state.characterFocus === 3) return `${getText(state.language, "character.presetLabel")}: ${elements.presetSelect.options[elements.presetSelect.selectedIndex].textContent}.`;
+    if (state.characterFocus === 3) return `${getText(state.language, "character.presetLabel")}: ${elements.presetSelect.options[elements.presetSelect.selectedIndex].textContent}`;
     if (state.characterFocus === 4) return getText(state.language, "character.confirm");
     return getText(state.language, "common.back");
 }
