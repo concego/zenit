@@ -36,7 +36,8 @@ function startGame() {
         characterDescription: document.getElementById("characterDescription"),
         characterPreview: document.getElementById("characterPreview"),
         characterConfirm: document.getElementById("characterConfirm"),
-        characterCancel: document.getElementById("characterCancel")
+        characterCancel: document.getElementById("characterCancel"),
+        menuMusic: document.getElementById("menuMusic")
     };
     if (Object.values(elements).some((element) => !element)) throw new Error("A interface principal do Zenit não foi encontrada.");
 
@@ -61,6 +62,18 @@ function startGame() {
         announcementTimer = window.setTimeout(() => { elements.announcer.textContent = message; }, 20);
     };
 
+    const syncMenuMusic = () => {
+        const isMainMenu = state.gameState === FRONT_STATES.MAIN;
+        if (isMainMenu) {
+            elements.menuMusic.volume = 0.35;
+            const playback = elements.menuMusic.play();
+            if (playback && typeof playback.catch === "function") playback.catch(() => {});
+        } else {
+            elements.menuMusic.pause();
+            elements.menuMusic.currentTime = 0;
+        }
+    };
+
     const render = () => {
         if (state.gameState.startsWith("FRONT_")) renderFrontEnd({ state, elements });
         else {
@@ -69,6 +82,7 @@ function startGame() {
             elements.svgCanvas.hidden = false;
             renderGame({ svgCanvas: elements.svgCanvas, level: state.level, player: state.player, language: state.language });
         }
+        syncMenuMusic();
     };
 
     const onLanguageSelected = (language) => {
