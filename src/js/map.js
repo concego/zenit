@@ -1,4 +1,6 @@
 // Mapa e elementos do mundo.
+import { createRng } from "./item-generator.js";
+import { generateBossEnemy, generateEnemy, generateEnemyLoot } from "./enemy-generator.js";
 
 export const GRID_WIDTH = 10;
 export const GRID_HEIGHT = 11;
@@ -60,9 +62,27 @@ function copyItems(items, levelNumber = 1) {
     return items.map((item) => ({ ...item, ...(item.ouro === undefined ? {} : { ouro: item.ouro * levelNumber }) }));
 }
 
+function createSewerEnemies() {
+    const rng = createRng(1001);
+    const placements = [
+        { species: "rat", x: 1, y: 3 },
+        { species: "slime", x: 3, y: 3 },
+        { species: "cultist", x: 6, y: 2 },
+        { species: "rat", x: 8, y: 2 },
+        { species: "slime", x: 7, y: 5 },
+        { species: "cultist", x: 1, y: 6 },
+        { species: "rat", x: 8, y: 8 }
+    ];
+    const enemies = placements.map((placement) => ({ ...generateEnemy({ biome: "sewers", tier: "common", species: placement.species, level: 1, rng }), x: placement.x, y: placement.y }));
+    const boss = generateBossEnemy({ biome: "sewers", tier: "common", species: "slime", level: 1, rng });
+    enemies.push({ ...boss, x: 8, y: 10 });
+    return { enemies, enemyLoot: enemies.map((enemy) => ({ enemyId: enemy.instanceId, ...generateEnemyLoot(enemy, { firstRun: true, rng }) })) };
+}
+
 export function createLevel(number = 1) {
     const levelNumber = Math.max(1, Number(number) || 1);
     const isSewer = levelNumber === 1;
+    const enemyData = isSewer ? createSewerEnemies() : { enemies: [], enemyLoot: [] };
     return {
         number: levelNumber,
         width: GRID_WIDTH,
@@ -75,7 +95,9 @@ export function createLevel(number = 1) {
         water: copyItems(isSewer ? SEWER_WATER : []),
         props: copyItems(isSewer ? SEWER_PROPS : []),
         door: { x: 9, y: 10 },
-        boxes: copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber).map((box) => ({ ...box, tier: "common" }))
+        boxes: copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber).map((box) => ({ ...box, tier: "common" })),
+        enemies: enemyData.enemies,
+        enemyLoot: enemyData.enemyLoot
     };
 }
 
@@ -95,6 +117,10 @@ export function getBoxAt(level, x, y) {
     return level.boxes.find((box) => box.x === x && box.y === y);
 }
 
+export function getEnemyAt(level, x, y) {
+    return level.enemies?.find((enemy) => enemy.x === x && enemy.y === y) || null;
+}
+
 export function getPropAt(level, x, y) {
     return level.props?.find((prop) => prop.x === x && prop.y === y) || null;
 }
@@ -105,9 +131,13 @@ export function isDoor(level, x, y) {
 
 export function isBlocked(level, x, y) {
     const prop = getPropAt(level, x, y);
-    return isWall(level, x, y) || isWater(level, x, y) || Boolean(getBoxAt(level, x, y)) || Boolean(prop?.blocking) || isDoor(level, x, y);
+    return isWall(level, x, y) || isWater(level, x, y) || Boolean(getBoxAt(level, x, y)) || Boolean(getEnemyAt(level, x, y)) || Boolean(prop?.blocking) || isDoor(level, x, y);
 }
 
 export function removeBox(level, box) {
     level.boxes = level.boxes.filter((currentBox) => currentBox !== box);
+}
+
+export function removeEnemy(level, enemy) {
+    level.enemies = (level.enemies || []).filter((currentEnemy) => currentEnemy !== enemy);
 }

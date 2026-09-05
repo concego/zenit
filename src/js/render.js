@@ -55,6 +55,27 @@ function renderProp(svgCanvas, prop, tileSize) {
     }
 }
 
+function renderEnemy(svgCanvas, enemy, tileSize) {
+    const cx = enemy.x * tileSize + tileSize / 2;
+    const cy = enemy.y * tileSize + tileSize / 2;
+    const boss = enemy.isBoss;
+    const colors = { rat: "#8d806f", slime: "#56b89b", cultist: "#805783" };
+    const fill = colors[enemy.species] || "#a85d5d";
+    if (boss) {
+        svgCanvas.appendChild(createSvgElement("circle", { cx, cy, r: 16, fill: "#c08b39", stroke: "#ffe49a", "stroke-width": 2, filter: "url(#zenitGlow)", "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx, cy, r: 11, fill, stroke: "#20192a", "stroke-width": 1.5, "aria-hidden": "true" }));
+    } else if (enemy.species === "slime") {
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${cx - 13} ${cy + 10} Q ${cx - 15} ${cy - 8} ${cx - 7} ${cy - 12} Q ${cx} ${cy - 17} ${cx + 8} ${cy - 10} Q ${cx + 16} ${cy - 5} ${cx + 12} ${cy + 10} Z`, fill, stroke: "#a7ead0", "stroke-width": 1.5, "aria-hidden": "true" }));
+    } else if (enemy.species === "cultist") {
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${cx - 12} ${cy + 12} L ${cx} ${cy - 14} L ${cx + 12} ${cy + 12} Z`, fill, stroke: "#d4a8dc", "stroke-width": 1.5, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx, cy: cy - 1, r: 5, fill: "#221b2c", "aria-hidden": "true" }));
+    } else {
+        svgCanvas.appendChild(createSvgElement("circle", { cx, cy, r: 11, fill, stroke: "#d4c3a4", "stroke-width": 1.5, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx: cx - 4, cy: cy - 2, r: 2, fill: "#201822", "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx: cx + 4, cy: cy - 2, r: 2, fill: "#201822", "aria-hidden": "true" }));
+    }
+}
+
 export function renderGame({ svgCanvas, level, player, language = "pt-BR" }) {
     if (!svgCanvas) return;
     const { width, height, tileSize } = level;
@@ -85,6 +106,7 @@ export function renderGame({ svgCanvas, level, player, language = "pt-BR" }) {
         svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize - 14, height: tileSize - 14, rx: 5, fill: "url(#zenitBox)", stroke: "#d9b37a", "stroke-width": 1.5, "aria-hidden": "true" }));
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 5} ${py + 5} L ${px + 23} ${py + 23} M ${px + 23} ${py + 5} L ${px + 5} ${py + 23}`, stroke: "#f1d39d", opacity: 0.55, "aria-hidden": "true" }));
     });
+    (level.enemies || []).forEach((enemy) => renderEnemy(svgCanvas, enemy, tileSize));
     const doorX = level.door.x * tileSize + 5;
     const doorY = level.door.y * tileSize + 5;
     svgCanvas.appendChild(createSvgElement("rect", { x: doorX, y: doorY, width: tileSize - 10, height: tileSize - 10, rx: 7, fill: "#b94b91", stroke: "#f6b4ed", "stroke-width": 2, filter: "url(#zenitGlow)", "aria-hidden": "true" }));

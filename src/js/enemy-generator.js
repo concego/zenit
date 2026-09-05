@@ -36,8 +36,11 @@ export function generateEnemy({ biome = "sewers", tier = "common", species, leve
         hp: scaled(selectedSpecies.baseStats.hp, multiplier),
         damage: scaled(selectedSpecies.baseStats.damage, multiplier),
         defense: scaled(selectedSpecies.baseStats.defense, multiplier),
-        speed: Math.max(1, Math.round(selectedSpecies.baseStats.speed * (isBoss ? 1.15 : 1)))
+        speed: Math.max(1, Math.round(selectedSpecies.baseStats.speed * (isBoss ? 1.15 : 1))),
+        coordination: 8 + selectedSpecies.baseStats.speed
     };
+    stats.maxHp = stats.hp;
+    stats.hpAtual = stats.hp;
     const instanceId = `${selectedSpecies.id}:${selectedTier.id}:${isBoss ? "boss" : "normal"}:${Math.floor(random() * 1000000000)}`;
     return {
         instanceId,
