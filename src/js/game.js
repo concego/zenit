@@ -37,7 +37,8 @@ function startGame() {
         characterPreview: document.getElementById("characterPreview"),
         characterConfirm: document.getElementById("characterConfirm"),
         characterCancel: document.getElementById("characterCancel"),
-        menuMusic: document.getElementById("menuMusic")
+        menuMusic: document.getElementById("menuMusic"),
+        levelMusic: document.getElementById("levelMusic")
     };
     if (Object.values(elements).some((element) => !element)) throw new Error("A interface principal do Zenit não foi encontrada.");
 
@@ -71,6 +72,16 @@ function startGame() {
         } else {
             elements.menuMusic.pause();
             elements.menuMusic.currentTime = 0;
+        }
+
+        const isFirstLevel = state.gameState === "NORMAL" && state.levelNumber === 1;
+        if (isFirstLevel) {
+            elements.levelMusic.volume = 0.3;
+            const playback = elements.levelMusic.play();
+            if (playback && typeof playback.catch === "function") playback.catch(() => {});
+        } else {
+            elements.levelMusic.pause();
+            elements.levelMusic.currentTime = 0;
         }
     };
 
