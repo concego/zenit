@@ -80,7 +80,7 @@ function attack(state, announce, render) {
         if (isWall(state.level, x, y)) { announce(`${m(state, "attackWall")} X ${x}, Y ${y}.`); return; }
         if (isDoor(state.level, x, y)) { announce(m(state, "attackDoor")); return; }
         const box = getBoxAt(state.level, x, y);
-        if (box) { state.player.stats.ouro += box.ouro; removeBox(state.level, box); announce(`Box X ${x}, Y ${y} ${m(state, "destroyed")} ${box.ouro} ${t(state, "gold")}. ${m(state, "total")}: ${state.player.stats.ouro}.`); render(); return; }
+        if (box) { state.player.stats.ouro += box.ouro; removeBox(state.level, box); announce(`${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")} ${box.ouro} ${t(state, "gold")}. ${m(state, "total")}: ${state.player.stats.ouro}.`); render(); return; }
     }
     announce(`${m(state, "attackDone")} ${itemName(state, weapon.nome)}. ${m(state, "noTarget")}`);
 }
