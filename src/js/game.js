@@ -1,20 +1,18 @@
 // Ponto de entrada e estado principal do Zenit.
 
-import { installInput } from "./input.js?v=audio4";
-import { installFrontInput } from "./frontend-input.js?v=audio4";
+import { installInput } from "./input.js?v=audio3";
+import { installFrontInput } from "./frontend-input.js?v=audio3";
 import { createLevel } from "./map.js";
 import { createPlayer } from "./player.js";
 import { renderGame } from "./render.js";
 import { FRONT_STATES, renderFrontEnd } from "./frontend.js";
 import { getDefaultDraft } from "./character.js";
 import { getSavedLanguage, getText, saveLanguage } from "./i18n.js";
-import { enableAudio, isAudioEnabled, playMenuConfirm } from "./ui-audio.js?v=audio4";
 
 function startGame() {
     const elements = {
         svgCanvas: document.getElementById("gameCanvas"),
         announcer: document.getElementById("screenReaderAnnouncer"),
-        audioUnlock: document.getElementById("audioUnlock"),
         frontEnd: document.getElementById("frontEnd"),
         frontTitle: document.getElementById("frontTitle"),
         frontDescription: document.getElementById("frontDescription"),
@@ -91,8 +89,6 @@ function startGame() {
     };
 
     const render = () => {
-        elements.audioUnlock.hidden = isAudioEnabled();
-        elements.audioUnlock.textContent = getText(state.language, "audio.enable");
         if (state.gameState.startsWith("FRONT_")) renderFrontEnd({ state, elements });
         else {
             elements.frontEnd.hidden = true;
@@ -143,15 +139,6 @@ function startGame() {
         elements.svgCanvas.focus();
         announce(`${getText(state.language, "startup.newGame")} ${name}. ${getText(state.language, "startup.controls")}`);
     };
-
-    elements.audioUnlock.addEventListener("click", async () => {
-        const enabled = await enableAudio();
-        if (enabled) {
-            playMenuConfirm();
-            announce(getText(state.language, "audio.enabled"));
-            render();
-        }
-    });
 
     installFrontInput({ state, elements, announce, render, onLanguageSelected, startNewGame, confirmCharacter, cancelCharacter });
     installInput({ state, announce, render });

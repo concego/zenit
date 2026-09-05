@@ -48,8 +48,6 @@ input::placeholder { color: #879ab5; }
 button { cursor: pointer; font-weight: 700; background: linear-gradient(135deg, #275b72, #344b83); }
 button:hover { filter: brightness(1.15); }
 button[type="button"] { background: #202e45; }
-#audioUnlock:not([hidden]) { margin-top: 1rem; border-color: var(--accent-strong); background: linear-gradient(135deg, #6d4e2c, #7c3e58); }
-#audioUnlock:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 3px; }
 .character-actions { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; margin-top: .8rem; }
 .field-description { min-height: 3.2rem; margin: .1rem 0 .35rem; padding: .7rem; border-left: 3px solid var(--accent-strong); background: rgba(255,255,255,.04); }
 .character-preview-column { display: grid; place-items: center; min-height: 280px; border: 1px solid #355577; border-radius: 16px; background: radial-gradient(circle, rgba(104,181,220,.18), rgba(10,17,31,.2) 65%); }
