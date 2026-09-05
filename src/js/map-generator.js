@@ -1,5 +1,6 @@
 // Geração procedural de mapas por bioma, tier, dificuldade, recursos e loot.
 import { generateItem, createRng } from "./item-generator.js";
+import { generateBossEnemy, generateEnemy, generateEnemyLoot } from "./enemy-generator.js";
 import { ITEM_CATEGORIES, ITEM_TIERS } from "./item-data.js";
 import { MAP_BIOMES, MAP_BIOME_LIST, MAP_TIERS, MAP_TIER_LIST } from "./map-data.js";
 
@@ -117,11 +118,17 @@ function addEnemies(map, biome, tier, rng) {
     const free = [];
     for (let y = 0; y < map.height; y += 1) for (let x = 0; x < map.width; x += 1) if (!occupied.has(key(x, y))) free.push({ x, y });
     const count = Math.min(free.length, Math.max(2, Math.round((3 + tier.rank * 2) * tier.enemyMultiplier)));
-    return Array.from({ length: count }, () => {
+    const enemies = Array.from({ length: count }, () => {
         const position = free.splice(Math.floor(rng() * free.length), 1)[0];
-        const family = choose(biome.enemyFamilies, rng);
-        return { id: `${family}-${Math.floor(rng() * 100000)}`, family, x: position.x, y: position.y, level: tier.rank };
+        const enemy = generateEnemy({ biome: biome.id, tier: tier.id, level: tier.rank, species: choose(biome.enemyFamilies, rng), rng });
+        return { ...enemy, x: position.x, y: position.y };
     });
+    if (free.length) {
+        const position = free.splice(Math.floor(rng() * free.length), 1)[0];
+        const boss = generateBossEnemy({ biome: biome.id, tier: tier.id, level: tier.rank, rng });
+        enemies.push({ ...boss, x: position.x, y: position.y });
+    }
+    return enemies;
 }
 
 function addResources(map, biome, tier, rng) {
@@ -157,9 +164,10 @@ export function generateMap({ biome = "sewers", tier = "common", level = 1, widt
     const rng = createRng(seed);
     const path = buildPath(width, height, rng);
     const terrain = createTerrain(selectedBiome, width, height, path, rng);
-    const map = { number: level, width, height, tileSize: 40, biome: selectedBiome.id, tier: selectedTier.id, tierRank: selectedTier.rank, seed, ...terrain, interactables: [], enemies: [], resources: [], loot: [], door: { x: width - 1, y: height - 1 }, lootRules: { mapTier: selectedTier.id, mapTierRank: selectedTier.rank, aboveTierBaseChance: selectedTier.aboveTierBaseChance, higherTierChanceFallsBy: 0.25, bossFirstRunException: true } };
+    const map = { number: level, width, height, tileSize: 40, biome: selectedBiome.id, tier: selectedTier.id, tierRank: selectedTier.rank, seed, ...terrain, interactables: [], enemies: [], enemyLoot: [], resources: [], loot: [], door: { x: width - 1, y: height - 1 }, lootRules: { mapTier: selectedTier.id, mapTierRank: selectedTier.rank, aboveTierBaseChance: selectedTier.aboveTierBaseChance, higherTierChanceFallsBy: 0.25, bossFirstRunException: true } };
     map.interactables = addInteractables(map, selectedBiome, selectedTier, rng);
     map.enemies = addEnemies(map, selectedBiome, selectedTier, rng);
+    map.enemyLoot = map.enemies.map((enemy) => ({ enemyId: enemy.instanceId, ...generateEnemyLoot(enemy, { firstRun, rng }) }));
     map.resources = addResources(map, selectedBiome, selectedTier, rng);
     map.loot = addLoot(map, selectedBiome, selectedTier, rng, firstRun);
     return map;
