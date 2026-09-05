@@ -1,6 +1,41 @@
 import { FRONT_STATES, getFrontMenu } from "./frontend.js";
 import { getText } from "./i18n.js";
-import { getPresetKeys, normalizeDraft } from "./character.js";
+import { getPresetKeys } from "./character.js";
+
+const CHARACTER_FOCUS_COUNT = 6;
+
+function characterControls(elements) {
+    return [elements.characterName, elements.genderSelect, elements.classSelect, elements.presetSelect, elements.characterConfirm, elements.characterCancel];
+}
+
+function focusCharacterControl(state, elements) {
+    const control = characterControls(elements)[state.characterFocus];
+    if (control) control.focus();
+}
+
+function characterFocusAnnouncement(state, elements) {
+    const control = characterControls(elements)[state.characterFocus];
+    if (state.characterFocus === 0) return state.characterNameEditing
+        ? getText(state.language, "character.nameEditing")
+        : getText(state.language, "character.nameFocus");
+    if (state.characterFocus === 1) return `${getText(state.language, "character.genderLabel")}: ${elements.genderSelect.options[elements.genderSelect.selectedIndex].textContent}.`;
+    if (state.characterFocus === 2) return `${getText(state.language, "character.classLabel")}: ${elements.classSelect.options[elements.classSelect.selectedIndex].textContent}.`;
+    if (state.characterFocus === 3) return `${getText(state.language, "character.presetLabel")}: ${elements.presetSelect.options[elements.presetSelect.selectedIndex].textContent}.`;
+    if (state.characterFocus === 4) return getText(state.language, "character.confirm");
+    return getText(state.language, "common.back");
+}
+
+function changeCharacterChoice(state, elements, direction, announce, render) {
+    const select = state.characterFocus === 1 ? elements.genderSelect : state.characterFocus === 2 ? elements.classSelect : elements.presetSelect;
+    if (!select) return false;
+    const next = (select.selectedIndex + direction + select.options.length) % select.options.length;
+    select.selectedIndex = next;
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+    render();
+    focusCharacterControl(state, elements);
+    announce(characterFocusAnnouncement(state, elements));
+    return true;
+}
 
 export function installFrontInput({ state, elements, announce, render, onLanguageSelected, startNewGame, confirmCharacter, cancelCharacter }) {
     elements.characterForm.addEventListener("submit", (event) => {
@@ -11,25 +46,64 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
     elements.genderSelect.addEventListener("change", () => {
         state.characterDraft.gender = elements.genderSelect.value;
         state.characterDraft.presetKey = getPresetKeys(state.characterDraft.gender, state.characterDraft.classKey)[0];
+        state.characterFocus = 1;
         render();
-        announce(getText(state.language, "character.genderChanged"));
     });
     elements.classSelect.addEventListener("change", () => {
         state.characterDraft.classKey = elements.classSelect.value;
         state.characterDraft.presetKey = getPresetKeys(state.characterDraft.gender, state.characterDraft.classKey)[0];
+        state.characterFocus = 2;
         render();
-        announce(getText(state.language, "character.classChanged"));
     });
     elements.presetSelect.addEventListener("change", () => {
         state.characterDraft.presetKey = elements.presetSelect.value;
+        state.characterFocus = 3;
         render();
-        announce(`${getText(state.language, "character.presetChanged")} ${elements.characterDescription.textContent}`);
     });
     elements.characterName.addEventListener("input", () => { state.characterDraft.name = elements.characterName.value; });
 
     window.addEventListener("keydown", (event) => {
         if (state.gameState === FRONT_STATES.CHARACTER) {
-            if (event.key === "Escape") { event.preventDefault(); cancelCharacter(); }
+            if (state.characterNameEditing) {
+                if (event.key === "Enter") {
+                    event.preventDefault();
+                    state.characterNameEditing = false;
+                    state.characterDraft.name = elements.characterName.value;
+                    render();
+                    focusCharacterControl(state, elements);
+                    announce(getText(state.language, "character.nameConfirmed"));
+                } else if (event.key === "Escape") {
+                    event.preventDefault();
+                    state.characterNameEditing = false;
+                    render();
+                    focusCharacterControl(state, elements);
+                    announce(getText(state.language, "character.nameCancelled"));
+                }
+                return;
+            }
+            if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+                event.preventDefault();
+                const direction = event.key === "ArrowDown" ? 1 : -1;
+                state.characterFocus = (state.characterFocus + direction + CHARACTER_FOCUS_COUNT) % CHARACTER_FOCUS_COUNT;
+                render();
+                focusCharacterControl(state, elements);
+                announce(characterFocusAnnouncement(state, elements));
+            } else if (event.key === "ArrowLeft" || event.key === "ArrowRight") {
+                if ([1, 2, 3].includes(state.characterFocus)) {
+                    event.preventDefault();
+                    changeCharacterChoice(state, elements, event.key === "ArrowRight" ? 1 : -1, announce, render);
+                }
+            } else if (event.key === "Enter") {
+                event.preventDefault();
+                if (state.characterFocus === 0) {
+                    state.characterNameEditing = true;
+                    render();
+                    focusCharacterControl(state, elements);
+                    announce(getText(state.language, "character.nameEditing"));
+                } else if (state.characterFocus === 4) confirmCharacter();
+                else if (state.characterFocus === 5) cancelCharacter();
+                else announce(characterFocusAnnouncement(state, elements));
+            } else return;
             return;
         }
         if (!state.gameState.startsWith("FRONT_")) return;

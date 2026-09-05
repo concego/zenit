@@ -34,7 +34,7 @@ main {
 #frontEnd, #characterCreation { outline: none; }
 #frontEnd:focus-visible, #characterCreation:focus-visible { outline: 3px solid var(--accent); outline-offset: 8px; }
 #frontTitle, #characterTitle { margin-top: 0; color: var(--accent); letter-spacing: .04em; }
-#frontDescription, #characterIntro, .field-description, #frontDetails, #frontHint { color: var(--muted); line-height: 1.55; }
+#frontDescription, #characterIntro, #characterHint, .field-description, #frontDetails, #frontHint { color: var(--muted); line-height: 1.55; }
 #frontOptions { display: grid; gap: .65rem; padding: 0; list-style: none; }
 #frontOptions li { padding: .8rem 1rem; border: 1px solid transparent; border-radius: 10px; color: var(--muted); }
 #frontOptions .menu-option-selected { border-color: var(--accent); background: rgba(123,223,242,.12); color: var(--text); box-shadow: inset 4px 0 var(--accent); }
@@ -43,7 +43,7 @@ main {
 .character-form-column form { display: grid; gap: .55rem; }
 label { margin-top: .45rem; color: var(--accent); font-weight: 700; }
 input, select, button { width: 100%; min-height: 2.75rem; border: 1px solid #52749a; border-radius: 9px; padding: .65rem .8rem; font: inherit; color: var(--text); background: #0b1424; }
-input:focus-visible, select:focus-visible, button:focus-visible, #characterDescription:focus-visible { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
+input:focus-visible, select:focus-visible, button:focus-visible, #characterDescription:focus-visible, .character-control-active { outline: 3px solid var(--accent-strong); outline-offset: 2px; }
 input::placeholder { color: #879ab5; }
 button { cursor: pointer; font-weight: 700; background: linear-gradient(135deg, #275b72, #344b83); }
 button:hover { filter: brightness(1.15); }

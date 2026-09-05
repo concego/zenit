@@ -22,6 +22,7 @@ function startGame() {
         characterCreation: document.getElementById("characterCreation"),
         characterTitle: document.getElementById("characterTitle"),
         characterIntro: document.getElementById("characterIntro"),
+        characterHint: document.getElementById("characterHint"),
         characterForm: document.getElementById("characterForm"),
         characterName: document.getElementById("characterName"),
         characterNameLabel: document.getElementById("characterNameLabel"),
@@ -52,6 +53,8 @@ function startGame() {
         player: createPlayer(),
         character: null,
         characterDraft: getDefaultDraft(),
+        characterFocus: 0,
+        characterNameEditing: false,
         menuIndex: 0,
         hasSave: false
     };
@@ -106,6 +109,8 @@ function startGame() {
     const startNewGame = () => {
         state.gameState = FRONT_STATES.CHARACTER;
         state.characterDraft = getDefaultDraft();
+        state.characterFocus = 0;
+        state.characterNameEditing = false;
         state.menuIndex = 0;
         render();
         elements.characterName.focus();

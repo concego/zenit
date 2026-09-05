@@ -43,6 +43,7 @@ function renderCharacterCreation({ state, elements }) {
     elements.svgCanvas.hidden = true;
     elements.characterTitle.textContent = getText(lang, "character.title");
     elements.characterIntro.textContent = getText(lang, "character.intro");
+    elements.characterHint.textContent = getText(lang, "character.hint");
     elements.characterNameLabel.textContent = getText(lang, "character.nameLabel");
     elements.characterName.placeholder = getText(lang, "character.namePlaceholder");
     elements.genderLabel.textContent = getText(lang, "character.genderLabel");
@@ -62,6 +63,12 @@ function renderCharacterCreation({ state, elements }) {
     getPresetKeys(draft.gender, draft.classKey).forEach((presetKey) => option(elements.presetSelect, presetKey, getText(lang, `character.presets.${presetKey}.description`)));
     elements.presetSelect.value = draft.presetKey;
     elements.characterName.value = draft.name;
+    elements.characterName.readOnly = !state.characterNameEditing;
+    const characterControls = [elements.characterName, elements.genderSelect, elements.classSelect, elements.presetSelect, elements.characterConfirm, elements.characterCancel];
+    characterControls.forEach((control, index) => {
+        control.tabIndex = -1;
+        control.classList.toggle("character-control-active", index === state.characterFocus);
+    });
     elements.characterClassDescription.textContent = getText(lang, `character.classes.${draft.classKey}.description`);
     elements.characterDescription.textContent = getText(lang, `character.presets.${draft.presetKey}.description`);
     elements.characterPreview.replaceChildren();
