@@ -33,12 +33,13 @@ export function getDirectionVector(direction) {
     }
 }
 
-export function createPlayer() {
+export function createPlayer(character = null) {
     const player = {
+        character,
         x: 0,
         y: 0,
         dir: "DIREITA",
-        classeAtiva: "VANGUARDA",
+        classeAtiva: character?.classKey === "hunter" ? "CACADOR" : character?.classKey === "mystic" ? "MISTICO" : "VANGUARDA",
         baseAttributes: { ...BASE_ATTRIBUTES },
         attributes: { ...BASE_ATTRIBUTES },
         stats: {

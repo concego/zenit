@@ -18,6 +18,34 @@
    <p id="frontDetails"></p>
    <p id="frontHint"></p>
   </section>
+  <section id="characterCreation" aria-labelledby="characterTitle" aria-describedby="characterIntro" hidden>
+   <h2 id="characterTitle"></h2>
+   <p id="characterIntro"></p>
+   <div class="character-layout">
+    <div class="character-form-column">
+     <form id="characterForm">
+      <label id="characterNameLabel" for="characterName"></label>
+      <input id="characterName" name="characterName" type="text" maxlength="32" autocomplete="nickname" required>
+      <label id="genderLabel" for="characterGender"></label>
+      <select id="characterGender" name="characterGender"></select>
+      <label id="classLabel" for="characterClass"></label>
+      <select id="characterClass" name="characterClass"></select>
+      <p id="characterClassDescription" class="field-description"></p>
+      <label id="presetLabel" for="characterPreset"></label>
+      <select id="characterPreset" name="characterPreset"></select>
+      <label id="characterDescriptionLabel" for="characterDescription"></label>
+      <p id="characterDescription" class="field-description" tabindex="0"></p>
+      <div class="character-actions">
+       <button id="characterConfirm" type="submit"></button>
+       <button id="characterCancel" type="button"></button>
+      </div>
+     </form>
+    </div>
+    <div class="character-preview-column">
+     <svg id="characterPreview" class="character-preview" viewBox="0 0 200 200" role="img"></svg>
+    </div>
+   </div>
+  </section>
   <svg id="gameCanvas" role="img" tabindex="0" aria-label="Mapa do Zenit" hidden></svg>
  </main>
  <script type="module" src="src/js/game.js"></script>

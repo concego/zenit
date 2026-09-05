@@ -108,6 +108,7 @@ function handleMenuKey(state, event, announce) {
 
 export function installInput({ state, announce, render }) {
     function onKeyDown(event) {
+        if (state.gameState.startsWith("FRONT_")) return;
         if (state.gameState !== "NORMAL") { if (handleMenuKey(state, event, announce)) event.preventDefault(); return; }
         const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isGameKey = isArrow || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey) event.preventDefault();
         if (lowerKey === "s") scan(state, announce);

@@ -6,6 +6,7 @@ import { createLevel } from "./map.js";
 import { createPlayer } from "./player.js";
 import { renderGame } from "./render.js";
 import { FRONT_STATES, renderFrontEnd } from "./frontend.js";
+import { getDefaultDraft } from "./character.js";
 import { getSavedLanguage, getText, saveLanguage } from "./i18n.js";
 
 function startGame() {
@@ -17,11 +18,27 @@ function startGame() {
         frontDescription: document.getElementById("frontDescription"),
         frontOptions: document.getElementById("frontOptions"),
         frontDetails: document.getElementById("frontDetails"),
-        frontHint: document.getElementById("frontHint")
+        frontHint: document.getElementById("frontHint"),
+        characterCreation: document.getElementById("characterCreation"),
+        characterTitle: document.getElementById("characterTitle"),
+        characterIntro: document.getElementById("characterIntro"),
+        characterForm: document.getElementById("characterForm"),
+        characterName: document.getElementById("characterName"),
+        characterNameLabel: document.getElementById("characterNameLabel"),
+        genderLabel: document.getElementById("genderLabel"),
+        genderSelect: document.getElementById("characterGender"),
+        classLabel: document.getElementById("classLabel"),
+        classSelect: document.getElementById("characterClass"),
+        presetLabel: document.getElementById("presetLabel"),
+        presetSelect: document.getElementById("characterPreset"),
+        characterClassDescription: document.getElementById("characterClassDescription"),
+        characterDescriptionLabel: document.getElementById("characterDescriptionLabel"),
+        characterDescription: document.getElementById("characterDescription"),
+        characterPreview: document.getElementById("characterPreview"),
+        characterConfirm: document.getElementById("characterConfirm"),
+        characterCancel: document.getElementById("characterCancel")
     };
-    if (Object.values(elements).some((element) => !element)) {
-        throw new Error("A interface principal do Zenit não foi encontrada.");
-    }
+    if (Object.values(elements).some((element) => !element)) throw new Error("A interface principal do Zenit não foi encontrada.");
 
     const savedLanguage = getSavedLanguage();
     const state = {
@@ -31,6 +48,8 @@ function startGame() {
         levelNumber: 1,
         level: createLevel(1),
         player: createPlayer(),
+        character: null,
+        characterDraft: getDefaultDraft(),
         menuIndex: 0,
         hasSave: false
     };
@@ -43,13 +62,12 @@ function startGame() {
     };
 
     const render = () => {
-        const isFrontEnd = state.gameState.startsWith("FRONT_");
-        if (isFrontEnd) {
-            renderFrontEnd({ state, elements });
-        } else {
+        if (state.gameState.startsWith("FRONT_")) renderFrontEnd({ state, elements });
+        else {
             elements.frontEnd.hidden = true;
+            elements.characterCreation.hidden = true;
             elements.svgCanvas.hidden = false;
-            renderGame({ svgCanvas: elements.svgCanvas, level: state.level, player: state.player });
+            renderGame({ svgCanvas: elements.svgCanvas, level: state.level, player: state.player, language: state.language });
         }
     };
 
@@ -61,23 +79,43 @@ function startGame() {
     };
 
     const startNewGame = () => {
+        state.gameState = FRONT_STATES.CHARACTER;
+        state.characterDraft = getDefaultDraft();
+        state.menuIndex = 0;
+        render();
+        elements.characterName.focus();
+        announce(getText(state.language, "character.intro"));
+    };
+
+    const cancelCharacter = () => {
+        state.gameState = FRONT_STATES.MAIN;
+        state.menuIndex = 1;
+        render();
+        elements.frontEnd.focus();
+        announce(getText(state.language, "main.title"));
+    };
+
+    const confirmCharacter = () => {
+        const name = elements.characterName.value.trim();
+        state.characterDraft.name = name;
+        if (!name) { announce(getText(state.language, "character.nameRequired")); elements.characterName.focus(); return; }
+        state.character = { ...state.characterDraft, name };
         state.gameState = "NORMAL";
         state.levelNumber = 1;
         state.level = createLevel(1);
-        state.player = createPlayer();
-        state.menuIndex = 0;
+        state.player = createPlayer(state.character);
+        state.hasSave = true;
         render();
         elements.svgCanvas.focus();
-        announce(`${getText(state.language, "startup.newGame")} ${getText(state.language, "startup.controls")}`);
+        announce(`${getText(state.language, "startup.newGame")} ${name}. ${getText(state.language, "startup.controls")}`);
     };
 
-    installFrontInput({ state, announce, render, onLanguageSelected, startNewGame });
+    installFrontInput({ state, elements, announce, render, onLanguageSelected, startNewGame, confirmCharacter, cancelCharacter });
     installInput({ state, announce, render });
     render();
-    elements.frontEnd.focus();
-    announce(state.gameState === FRONT_STATES.LANGUAGE
-        ? getText(state.language, "language.hint")
-        : getText(state.language, "main.title"));
+    document.documentElement.lang = state.language;
+    if (state.gameState === FRONT_STATES.LANGUAGE) { elements.frontEnd.focus(); announce(getText(state.language, "language.hint")); }
+    else elements.frontEnd.focus();
 }
 
 document.addEventListener("DOMContentLoaded", startGame, { once: true });
