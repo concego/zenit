@@ -59,14 +59,14 @@ function renderCharacterCreation({ state, elements }) {
     CHARACTER_CLASSES.forEach(({ key }) => option(elements.classSelect, key, getText(lang, `character.classes.${key}.name`)));
     elements.classSelect.value = draft.classKey;
     elements.presetSelect.replaceChildren();
-    getPresetKeys(draft.gender, draft.classKey).forEach((presetKey, index) => option(elements.presetSelect, presetKey, getText(lang, `character.presets.${presetKey}.name`) || `${getText(lang, "character.presetLabel")} ${index + 1}`));
+    getPresetKeys(draft.gender, draft.classKey).forEach((presetKey, index) => option(elements.presetSelect, presetKey, getText(lang, "character.presetOption").replace("{number}", String(index + 1))));
     elements.presetSelect.value = draft.presetKey;
     elements.characterName.value = draft.name;
     elements.characterClassDescription.textContent = getText(lang, `character.classes.${draft.classKey}.description`);
     elements.characterDescription.textContent = getText(lang, `character.presets.${draft.presetKey}.description`);
     elements.characterPreview.replaceChildren();
     appendCharacterAvatar(elements.characterPreview, { x: 100, y: 100, size: 170, gender: draft.gender, classKey: draft.classKey, presetKey: draft.presetKey });
-    elements.characterPreview.setAttribute("aria-label", `${getText(lang, `character.presets.${draft.presetKey}.name`)}. ${elements.characterDescription.textContent}`);
+    elements.characterPreview.setAttribute("aria-label", elements.characterDescription.textContent);
 }
 
 export function renderFrontEnd({ state, elements }) {
