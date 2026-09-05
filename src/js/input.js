@@ -1,5 +1,5 @@
 // Keyboard input and in-game menus.
-import { createLevel, getBoxAt, isBlocked, isDoor, isInside, isWall, removeBox } from "./map.js";
+import { createLevel, getBoxAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
 import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
@@ -47,7 +47,7 @@ function move(state, directionName, announce, render) {
     const newY = state.player.y + vector.dy;
     if (!isInside(state.level, newX, newY)) { announce(m(state, "boundary")); return; }
     if (isBlocked(state.level, newX, newY)) {
-        const reason = isDoor(state.level, newX, newY) ? m(state, "doorAhead") : getBoxAt(state.level, newX, newY) ? m(state, "boxAhead") : "";
+        const reason = isDoor(state.level, newX, newY) ? m(state, "doorAhead") : getBoxAt(state.level, newX, newY) ? m(state, "boxAhead") : isWater(state.level, newX, newY) ? m(state, "waterAhead") : getPropAt(state.level, newX, newY) ? m(state, "objectAhead") : "";
         announce(`${m(state, "blocked")} ${direction(state, directionName)}.${reason}`); return;
     }
     state.player.x = newX; state.player.y = newY; announce(`${newX},${newY}`); render();
@@ -64,7 +64,9 @@ function scan(state, announce) {
             const key = `${x},${y}`;
             if (!isInside(state.level, x, y) || checked.has(key)) continue; checked.add(key);
             if (isWall(state.level, x, y)) found.push(`${m(state, "scanWall")} X ${x}, Y ${y}`);
+            else if (isWater(state.level, x, y)) found.push(`${m(state, "scanWater")} X ${x}, Y ${y}`);
             else if (getBoxAt(state.level, x, y)) found.push(`${m(state, "scanBox")} X ${x}, Y ${y}`);
+            else if (getPropAt(state.level, x, y)) found.push(`${m(state, "scanObject")} X ${x}, Y ${y}`);
             else if (isDoor(state.level, x, y)) found.push(`${m(state, "scanDoor")} X ${x}, Y ${y}`);
         }
     }

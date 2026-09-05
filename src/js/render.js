@@ -16,15 +16,43 @@ function appendDefs(svgCanvas) {
     floor.append(createSvgElement("stop", { offset: "0", "stop-color": "#18283b" }), createSvgElement("stop", { offset: "1", "stop-color": "#101827" }));
     const wall = createSvgElement("linearGradient", { id: "zenitWall", x1: "0", y1: "0", x2: "1", y2: "1" });
     wall.append(createSvgElement("stop", { offset: "0", "stop-color": "#536b86" }), createSvgElement("stop", { offset: "1", "stop-color": "#27364f" }));
+    const water = createSvgElement("linearGradient", { id: "zenitWater", x1: "0", y1: "0", x2: "1", y2: "1" });
+    water.append(createSvgElement("stop", { offset: "0", "stop-color": "#1b6074" }), createSvgElement("stop", { offset: "0.55", "stop-color": "#123d5b" }), createSvgElement("stop", { offset: "1", "stop-color": "#0b263f" }));
     const box = createSvgElement("linearGradient", { id: "zenitBox", x1: "0", y1: "0", x2: "1", y2: "1" });
-    box.append(createSvgElement("stop", { offset: "0", "stop-color": "#f0a24b" }), createSvgElement("stop", { offset: "1", "stop-color": "#a74255" }));
+    box.append(createSvgElement("stop", { offset: "0", "stop-color": "#c77a3f" }), createSvgElement("stop", { offset: "1", "stop-color": "#713d3d" }));
     const glow = createSvgElement("filter", { id: "zenitGlow", x: "-50%", y: "-50%", width: "200%", height: "200%" });
     glow.append(createSvgElement("feGaussianBlur", { stdDeviation: "2", result: "blur" }));
     const merge = createSvgElement("feMerge");
     merge.append(createSvgElement("feMergeNode", { in: "blur" }), createSvgElement("feMergeNode", { in: "SourceGraphic" }));
     glow.append(merge);
-    defs.append(floor, wall, box, glow);
+    defs.append(floor, wall, water, box, glow);
     svgCanvas.appendChild(defs);
+}
+
+function renderWater(svgCanvas, water, tileSize) {
+    water.forEach((tile) => {
+        const px = tile.x * tileSize;
+        const py = tile.y * tileSize;
+        svgCanvas.appendChild(createSvgElement("rect", { x: px + 1, y: py + 1, width: tileSize - 2, height: tileSize - 2, rx: 4, fill: "url(#zenitWater)", stroke: "#3f9eb0", "stroke-width": 1.2, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 7} ${py + 13} Q ${px + 15} ${py + 8} ${px + 25} ${py + 13} M ${px + 10} ${py + 27} Q ${px + 19} ${py + 22} ${px + 32} ${py + 27}`, fill: "none", stroke: "#76c8c9", "stroke-width": 1.2, opacity: 0.6, "aria-hidden": "true" }));
+    });
+}
+
+function renderProp(svgCanvas, prop, tileSize) {
+    const px = prop.x * tileSize;
+    const py = prop.y * tileSize;
+    if (prop.type === "grate") {
+        svgCanvas.appendChild(createSvgElement("circle", { cx: px + 20, cy: py + 20, r: 13, fill: "#111a25", stroke: "#8997a0", "stroke-width": 2, "aria-hidden": "true" }));
+        for (let i = -8; i <= 8; i += 8) svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 12 + i} ${py + 11} L ${px + 12 + i} ${py + 29}`, stroke: "#b0b9b9", "stroke-width": 2, opacity: 0.7, "aria-hidden": "true" }));
+    } else if (prop.type === "lamp") {
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 20} ${py + 31} V ${py + 11} Q ${px + 20} ${py + 7} ${px + 25} ${py + 7}`, fill: "none", stroke: "#a88a61", "stroke-width": 3, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx: px + 28, cy: py + 9, r: 6, fill: "#f1c66e", stroke: "#fff0ac", "stroke-width": 1.5, filter: "url(#zenitGlow)", "aria-hidden": "true" }));
+    } else if (prop.type === "barrel") {
+        svgCanvas.appendChild(createSvgElement("rect", { x: px + 10, y: py + 6, width: 20, height: 29, rx: 7, fill: "#704434", stroke: "#c89b62", "stroke-width": 1.5, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 9} ${py + 13} H ${px + 31} M ${px + 9} ${py + 28} H ${px + 31}`, stroke: "#d3af70", "stroke-width": 2, "aria-hidden": "true" }));
+    } else {
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 7} ${py + 30} L ${px + 12} ${py + 14} L ${px + 21} ${py + 23} L ${px + 28} ${py + 10} L ${px + 34} ${py + 31} Z`, fill: "#4b4d58", stroke: "#9b9aa0", "stroke-width": 1.5, "aria-hidden": "true" }));
+    }
 }
 
 export function renderGame({ svgCanvas, level, player, language = "pt-BR" }) {
@@ -43,17 +71,19 @@ export function renderGame({ svgCanvas, level, player, language = "pt-BR" }) {
         svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize, height: tileSize, rx: 3, fill: "url(#zenitFloor)", stroke: "#2a405a", "stroke-width": 1 }));
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 7} ${py + 30} l 4 -2 M ${px + 27} ${py + 10} l 3 -1`, stroke: "#36516b", "stroke-width": 1, opacity: 0.55, "aria-hidden": "true" }));
     }
+    renderWater(svgCanvas, level.water || [], tileSize);
     level.walls.forEach((wall) => {
         const px = wall.x * tileSize + 2;
         const py = wall.y * tileSize + 2;
         svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize - 4, height: tileSize - 4, rx: 6, fill: "url(#zenitWall)", stroke: "#87a7c7", "stroke-width": 1.5, "aria-hidden": "true" }));
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 6} ${py + 12} H ${px + 30} M ${px + 10} ${py + 22} H ${px + 26}`, stroke: "#9bb6d2", opacity: 0.3, "aria-hidden": "true" }));
     });
+    (level.props || []).forEach((prop) => renderProp(svgCanvas, prop, tileSize));
     level.boxes.forEach((box) => {
         const px = box.x * tileSize + 7;
         const py = box.y * tileSize + 7;
-        svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize - 14, height: tileSize - 14, rx: 5, fill: "url(#zenitBox)", stroke: "#ffd18a", "stroke-width": 1.5, "aria-hidden": "true" }));
-        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 5} ${py + 5} L ${px + 23} ${py + 23} M ${px + 23} ${py + 5} L ${px + 5} ${py + 23}`, stroke: "#ffe4ac", opacity: 0.55, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize - 14, height: tileSize - 14, rx: 5, fill: "url(#zenitBox)", stroke: "#d9b37a", "stroke-width": 1.5, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 5} ${py + 5} L ${px + 23} ${py + 23} M ${px + 23} ${py + 5} L ${px + 5} ${py + 23}`, stroke: "#f1d39d", opacity: 0.55, "aria-hidden": "true" }));
     });
     const doorX = level.door.x * tileSize + 5;
     const doorY = level.door.y * tileSize + 5;
