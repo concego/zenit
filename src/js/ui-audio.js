@@ -33,6 +33,15 @@ function schedule(context, sequence) {
     sequence.forEach((item) => tone(context, item.frequency, start + item.offset, item.duration, item.type, item.volume));
 }
 
+function unlockAudio() {
+    const context = getAudioContext();
+    if (context && context.state === "suspended") context.resume().catch(() => {});
+}
+
+window.addEventListener("pointerdown", unlockAudio, { passive: true });
+window.addEventListener("touchstart", unlockAudio, { passive: true });
+window.addEventListener("keydown", unlockAudio, { passive: true });
+
 function play(sequence) {
     const context = getAudioContext();
     if (!context) return;

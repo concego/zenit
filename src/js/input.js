@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, isBlocked, isDoor, isInside, isWall, removeBox } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js";
+import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=audio3";
 
 const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
