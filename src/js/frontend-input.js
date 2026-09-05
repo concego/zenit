@@ -1,6 +1,7 @@
 import { FRONT_STATES, getFrontMenu } from "./frontend.js";
 import { getText } from "./i18n.js";
 import { getPresetKeys } from "./character.js";
+import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js";
 
 const CHARACTER_FOCUS_COUNT = 6;
 
@@ -29,6 +30,7 @@ function changeCharacterChoice(state, elements, direction, announce, render) {
     const select = state.characterFocus === 1 ? elements.genderSelect : state.characterFocus === 2 ? elements.classSelect : elements.presetSelect;
     if (!select) return false;
     const next = (select.selectedIndex + direction + select.options.length) % select.options.length;
+    playMenuScroll();
     select.selectedIndex = next;
     select.dispatchEvent(new Event("change", { bubbles: true }));
     render();
@@ -67,6 +69,7 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
             if (state.characterNameEditing) {
                 if (event.key === "Enter") {
                     event.preventDefault();
+                    playMenuConfirm();
                     state.characterNameEditing = false;
                     state.characterDraft.name = elements.characterName.value;
                     render();
@@ -74,6 +77,7 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
                     announce(getText(state.language, "character.nameConfirmed"));
                 } else if (event.key === "Escape") {
                     event.preventDefault();
+                    playMenuCancel();
                     state.characterNameEditing = false;
                     render();
                     focusCharacterControl(state, elements);
@@ -83,6 +87,7 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
             }
             if (event.key === "ArrowUp" || event.key === "ArrowDown") {
                 event.preventDefault();
+                playMenuScroll();
                 const direction = event.key === "ArrowDown" ? 1 : -1;
                 state.characterFocus = (state.characterFocus + direction + CHARACTER_FOCUS_COUNT) % CHARACTER_FOCUS_COUNT;
                 render();
@@ -95,6 +100,7 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
                 }
             } else if (event.key === "Enter") {
                 event.preventDefault();
+                playMenuConfirm();
                 if (state.characterFocus === 0) {
                     state.characterNameEditing = true;
                     render();
@@ -109,14 +115,17 @@ export function installFrontInput({ state, elements, announce, render, onLanguag
         if (!state.gameState.startsWith("FRONT_")) return;
         const menu = getFrontMenu(state);
         if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+            playMenuScroll();
             state.menuIndex = (state.menuIndex + (event.key === "ArrowDown" ? 1 : -1) + menu.length) % menu.length;
             announce(menu[state.menuIndex].disabled ? getText(state.language, "main.noSave") : menu[state.menuIndex].label);
         } else if (event.key === "Escape") {
+            playMenuCancel();
             if (state.gameState === FRONT_STATES.LANGUAGE && state.languageContext === "startup") announce(getText(state.language, "language.hint"));
             else { state.gameState = FRONT_STATES.MAIN; state.menuIndex = 0; announce(getText(state.language, "main.title")); }
         } else if (event.key === "Enter") {
             const item = menu[state.menuIndex];
             if (!item) return;
+            if (!item.disabled) playMenuConfirm();
             if (item.disabled) announce(getText(state.language, "main.noSave"));
             else if (state.gameState === FRONT_STATES.LANGUAGE) {
                 const context = state.languageContext;

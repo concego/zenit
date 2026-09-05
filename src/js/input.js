@@ -2,6 +2,7 @@
 import { createLevel, getBoxAt, isBlocked, isDoor, isInside, isWall, removeBox } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
+import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js";
 
 const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
@@ -100,9 +101,9 @@ function toggleWeapon(state, announce) {
 
 function handleMenuKey(state, event, announce) {
     const { key } = event; const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : MAIN_MENU;
-    if (key === "ArrowUp" || key === "ArrowDown") { const increment = key === "ArrowDown" ? 1 : -1; state.menuIndex = (state.menuIndex + increment + menu.length) % menu.length; const option = menu[state.menuIndex]; announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : t(state, option)); return true; }
-    if (key === "Escape") { const previous = state.gameState; if (previous === "MENU_PRINCIPAL") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); } else { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = previous === "MENU_STATUS" ? 0 : 2; announce(`${t(state, "mainMenu")}. ${m(state, "option")}: ${t(state, MAIN_MENU[state.menuIndex])}.`); } return true; }
-    if (state.gameState === "MENU_PRINCIPAL" && key === "Enter") { const option = MAIN_MENU[state.menuIndex]; if (option === "status") { state.gameState = "MENU_STATUS"; state.menuIndex = 0; announce(`${m(state, "submenuStatus")} ${statusDetail(state, state.player, STATUS_MENU[0])}`); } else if (option === "inventory") announce(m(state, "inventoryEmpty")); else { state.gameState = "MENU_EQUIPAMENTO"; state.menuIndex = 0; announce(`${m(state, "submenuEquipment")} ${equipmentDetail(state, state.player, EQUIPMENT_MENU[0])}`); } return true; }
+    if (key === "ArrowUp" || key === "ArrowDown") { playMenuScroll(); const increment = key === "ArrowDown" ? 1 : -1; state.menuIndex = (state.menuIndex + increment + menu.length) % menu.length; const option = menu[state.menuIndex]; announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : t(state, option)); return true; }
+    if (key === "Escape") { playMenuCancel(); const previous = state.gameState; if (previous === "MENU_PRINCIPAL") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); } else { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = previous === "MENU_STATUS" ? 0 : 2; announce(`${t(state, "mainMenu")}. ${m(state, "option")}: ${t(state, MAIN_MENU[state.menuIndex])}.`); } return true; }
+    if (state.gameState === "MENU_PRINCIPAL" && key === "Enter") { playMenuConfirm(); const option = MAIN_MENU[state.menuIndex]; if (option === "status") { state.gameState = "MENU_STATUS"; state.menuIndex = 0; announce(`${m(state, "submenuStatus")} ${statusDetail(state, state.player, STATUS_MENU[0])}`); } else if (option === "inventory") announce(m(state, "inventoryEmpty")); else { state.gameState = "MENU_EQUIPAMENTO"; state.menuIndex = 0; announce(`${m(state, "submenuEquipment")} ${equipmentDetail(state, state.player, EQUIPMENT_MENU[0])}`); } return true; }
     return false;
 }
 
