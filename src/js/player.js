@@ -1,4 +1,5 @@
 // Estado do jogador e regras de classes do Zenit.
+import { getDerivedStats } from "./balance.js";
 import { createCharacterSkillSet } from "./skill-generator.js";
 
 export const CLASSES = Object.freeze({
@@ -37,6 +38,7 @@ export function getDirectionVector(direction) {
 export function createPlayer(character = null) {
     const player = {
         character,
+        progression: { level: 1, experience: 0, attributePoints: 0 },
         skills: createCharacterSkillSet({ classKey: character?.classKey || "vanguard", seed: character?.skillSeed ?? character?.name ?? character?.presetKey }),
         skillState: { buffs: {}, pendingAttack: null, companion: null },
         x: 0,
@@ -85,11 +87,12 @@ export function initializePlayerStats(player) {
         mente: player.baseAttributes.mente + bonus.mente
     };
 
-    player.stats.hpMax = player.attributes.potencia * 10;
+    const derivedStats = getDerivedStats(player.attributes);
+    player.stats.hpMax = derivedStats.hpMax;
     player.stats.hpAtual = player.stats.hpMax;
-    player.stats.estMax = (player.attributes.potencia + player.attributes.coordenacao) * 5;
+    player.stats.estMax = derivedStats.estMax;
     player.stats.estAtual = player.stats.estMax;
-    player.stats.manaMax = player.attributes.mente * 10;
+    player.stats.manaMax = derivedStats.manaMax;
     player.stats.manaAtual = player.stats.manaMax;
 }
 
