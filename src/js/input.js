@@ -3,14 +3,17 @@ import { createLevel, getBoxAt, getPropAt, isBlocked, isDoor, isInside, isWall, 
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
 import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
+import { canLearnSkill, learnSkill } from "./skill-generator.js";
 
 const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
 const direction = (state, key) => getText(state.language, `gameplay.direction.${key}`);
 const itemName = (state, name) => getText(state.language, `gameplay.item.${name}`);
 
-const MAIN_MENU = ["status", "inventory", "equipment"];
+const MAIN_MENU = ["status", "inventory", "equipment", "skills"];
 const STATUS_MENU = ["class", "power", "coordination", "mind", "hp", "stamina", "mana", "gold"];
+
+function skillsMenu(state) { return state.player.skills?.skills?.map((skill) => skill.id) || []; }
 const EQUIPMENT_MENU = ["head", "neck", "ring1", "ring2", "torso", "body", "waist", "legs", "feet", "melee", "ranged", "shield"];
 const equipmentByKey = { head: "cabeca", neck: "pescoco", ring1: "anel1", ring2: "anel2", torso: "tronco", body: "sobreCorpo", waist: "cintura", legs: "pernas", feet: "pes", melee: "armaMelee", ranged: "armaRanged", shield: "escudo" };
 
@@ -34,6 +37,22 @@ function equipmentDetail(state, player, option) {
     const range = item && item.alcance !== undefined ? item.alcance : 1;
     const name = item ? `${itemName(state, item.nome)} (${t(state, "range")}: ${range})` : t(state, "empty");
     return `${t(state, option)}: ${name}.`;
+}
+
+function skillLabel(state, skill) { return getText(state.language, `skills.names.${skill.id}`); }
+
+function skillDescription(state, skill) { return getText(state.language, `skills.descriptions.${skill.id}`); }
+
+function skillDetail(state, skillId) {
+    const skill = state.player.skills.skills.find((item) => item.id === skillId);
+    if (!skill) return m(state, "skillUnavailable");
+    const nextCost = skill.level >= skill.maxLevel ? "—" : skill.levelCosts[skill.level];
+    const requirementParts = [];
+    Object.entries(skill.requirements.attributes || {}).forEach(([attribute, value]) => requirementParts.push(`${t(state, attribute === "potencia" ? "power" : attribute === "coordenacao" ? "coordination" : "mind")}: ${value}`));
+    (skill.requirements.skills || []).forEach((requirement) => requirementParts.push(`${skillLabel(state, state.player.skills.skills.find((item) => item.id === requirement.id) || { id: requirement.id })} ${t(state, "skillLevelShort")}: ${requirement.level}`));
+    const result = canLearnSkill(state.player.skills, skill.id, state.player.attributes);
+    const status = skill.level >= skill.maxLevel ? m(state, "skillMax") : result.allowed ? m(state, "skillReady") : result.reason === "skill_points" ? m(state, "skillNeedPoints") : result.reason === "requirements" ? m(state, "skillNeedRequirements") : "";
+    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)}. ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${status}`;
 }
 
 function frontPosition(state) {
@@ -102,10 +121,43 @@ function toggleWeapon(state, announce) {
 }
 
 function handleMenuKey(state, event, announce) {
-    const { key } = event; const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : MAIN_MENU;
-    if (key === "ArrowUp" || key === "ArrowDown") { playMenuScroll(); const increment = key === "ArrowDown" ? 1 : -1; state.menuIndex = (state.menuIndex + increment + menu.length) % menu.length; const option = menu[state.menuIndex]; announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : t(state, option)); return true; }
-    if (key === "Escape") { playMenuCancel(); const previous = state.gameState; if (previous === "MENU_PRINCIPAL") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); } else { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = previous === "MENU_STATUS" ? 0 : 2; announce(`${t(state, "mainMenu")}. ${m(state, "option")}: ${t(state, MAIN_MENU[state.menuIndex])}.`); } return true; }
-    if (state.gameState === "MENU_PRINCIPAL" && key === "Enter") { playMenuConfirm(); const option = MAIN_MENU[state.menuIndex]; if (option === "status") { state.gameState = "MENU_STATUS"; state.menuIndex = 0; announce(`${m(state, "submenuStatus")} ${statusDetail(state, state.player, STATUS_MENU[0])}`); } else if (option === "inventory") announce(m(state, "inventoryEmpty")); else { state.gameState = "MENU_EQUIPAMENTO"; state.menuIndex = 0; announce(`${m(state, "submenuEquipment")} ${equipmentDetail(state, state.player, EQUIPMENT_MENU[0])}`); } return true; }
+    const { key } = event;
+    const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : state.gameState === "MENU_HABILIDADES" ? skillsMenu(state) : MAIN_MENU;
+    if (key === "ArrowUp" || key === "ArrowDown") {
+        playMenuScroll();
+        const increment = key === "ArrowDown" ? 1 : -1;
+        state.menuIndex = (state.menuIndex + increment + menu.length) % menu.length;
+        const option = menu[state.menuIndex];
+        announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : state.gameState === "MENU_HABILIDADES" ? skillDetail(state, option) : t(state, option));
+        return true;
+    }
+    if (key === "Escape") {
+        playMenuCancel();
+        const previous = state.gameState;
+        if (previous === "MENU_PRINCIPAL") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); }
+        else {
+            state.gameState = "MENU_PRINCIPAL";
+            state.menuIndex = previous === "MENU_STATUS" ? 0 : previous === "MENU_HABILIDADES" ? 3 : 2;
+            announce(`${t(state, "mainMenu")}. ${m(state, "option")}: ${t(state, MAIN_MENU[state.menuIndex])}.`);
+        }
+        return true;
+    }
+    if (state.gameState === "MENU_PRINCIPAL" && key === "Enter") {
+        playMenuConfirm();
+        const option = MAIN_MENU[state.menuIndex];
+        if (option === "status") { state.gameState = "MENU_STATUS"; state.menuIndex = 0; announce(`${m(state, "submenuStatus")} ${statusDetail(state, state.player, STATUS_MENU[0])}`); }
+        else if (option === "inventory") announce(m(state, "inventoryEmpty"));
+        else if (option === "equipment") { state.gameState = "MENU_EQUIPAMENTO"; state.menuIndex = 0; announce(`${m(state, "submenuEquipment")} ${equipmentDetail(state, state.player, EQUIPMENT_MENU[0])}`); }
+        else { state.gameState = "MENU_HABILIDADES"; state.menuIndex = 0; const firstSkill = skillsMenu(state)[0]; announce(`${m(state, "submenuSkills")} ${skillDetail(state, firstSkill)}`); }
+        return true;
+    }
+    if (state.gameState === "MENU_HABILIDADES" && key === "Enter") {
+        const skillId = skillsMenu(state)[state.menuIndex];
+        const result = learnSkill(state.player.skills, skillId, state.player.attributes);
+        if (result.allowed) { playMenuConfirm(); announce(`${skillLabel(state, result.skill)}: ${m(state, "skillPurchased")} ${result.level}. ${skillDetail(state, skillId)}`); }
+        else { playMenuCancel(); announce(`${skillDetail(state, skillId)} ${m(state, "skillCannotPurchase")}`); }
+        return true;
+    }
     return false;
 }
 
