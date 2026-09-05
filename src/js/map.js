@@ -68,11 +68,14 @@ export function createLevel(number = 1) {
         width: GRID_WIDTH,
         height: GRID_HEIGHT,
         tileSize: TILE_SIZE,
+        tier: "common",
+        tierRank: 1,
+        lootRules: { mapTier: "common", mapTierRank: 1, aboveTierBaseChance: 0.03, higherTierChanceFallsBy: 0.25, bossFirstRunException: true },
         walls: copyItems(isSewer ? SEWER_WALLS : BASE_WALLS),
         water: copyItems(isSewer ? SEWER_WATER : []),
         props: copyItems(isSewer ? SEWER_PROPS : []),
         door: { x: 9, y: 10 },
-        boxes: copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber)
+        boxes: copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber).map((box) => ({ ...box, tier: "common" }))
     };
 }
 

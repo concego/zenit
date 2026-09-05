@@ -50,11 +50,11 @@ export const MAP_BIOMES = Object.freeze({
 });
 
 export const MAP_TIERS = Object.freeze({
-    COMMON: Object.freeze({ id: "common", rank: ITEM_TIERS.COMMON.rank, difficulty: 1, enemyMultiplier: 1, lootMultiplier: 1, higherTierChance: 0.01 }),
-    UNCOMMON: Object.freeze({ id: "uncommon", rank: ITEM_TIERS.UNCOMMON.rank, difficulty: 1.35, enemyMultiplier: 1.2, lootMultiplier: 1.25, higherTierChance: 0.012 }),
-    RARE: Object.freeze({ id: "rare", rank: ITEM_TIERS.RARE.rank, difficulty: 1.8, enemyMultiplier: 1.5, lootMultiplier: 1.6, higherTierChance: 0.015 }),
-    EPIC: Object.freeze({ id: "epic", rank: ITEM_TIERS.EPIC.rank, difficulty: 2.4, enemyMultiplier: 1.9, lootMultiplier: 2.1, higherTierChance: 0.018 }),
-    LEGENDARY: Object.freeze({ id: "legendary", rank: ITEM_TIERS.LEGENDARY.rank, difficulty: 3.2, enemyMultiplier: 2.4, lootMultiplier: 2.8, higherTierChance: 0.02 })
+    COMMON: Object.freeze({ id: "common", rank: ITEM_TIERS.COMMON.rank, difficulty: 1, enemyMultiplier: 1, lootMultiplier: 1, aboveTierBaseChance: 0.03 }),
+    UNCOMMON: Object.freeze({ id: "uncommon", rank: ITEM_TIERS.UNCOMMON.rank, difficulty: 1.35, enemyMultiplier: 1.2, lootMultiplier: 1.25, aboveTierBaseChance: 0.03 }),
+    RARE: Object.freeze({ id: "rare", rank: ITEM_TIERS.RARE.rank, difficulty: 1.8, enemyMultiplier: 1.5, lootMultiplier: 1.6, aboveTierBaseChance: 0.03 }),
+    EPIC: Object.freeze({ id: "epic", rank: ITEM_TIERS.EPIC.rank, difficulty: 2.4, enemyMultiplier: 1.9, lootMultiplier: 2.1, aboveTierBaseChance: 0.03 }),
+    LEGENDARY: Object.freeze({ id: "legendary", rank: ITEM_TIERS.LEGENDARY.rank, difficulty: 3.2, enemyMultiplier: 2.4, lootMultiplier: 2.8, aboveTierBaseChance: 0.03 })
 });
 
 export const MAP_BIOME_LIST = Object.freeze(Object.values(MAP_BIOMES));

@@ -49,19 +49,23 @@ function buildPath(width, height, rng) {
     return path;
 }
 
-function rollTier(mapTier, rng, { boss = false, firstRun = false } = {}) {
-    let maximumRank = mapTier.rank;
-    let exception = false;
-    if (boss && firstRun) {
-        maximumRank = Math.min(TIER_LIST.length, mapTier.rank + 2);
-        exception = maximumRank > mapTier.rank;
-    } else if (!boss && rng() < mapTier.higherTierChance) {
-        maximumRank = Math.min(TIER_LIST.length, mapTier.rank + 1);
-        exception = maximumRank > mapTier.rank;
-    }
-    const available = TIER_LIST.filter((tier) => tier.rank <= maximumRank);
-    const selected = choose(available, rng);
-    return { tier: selected, exception };
+export function rollLootTier(mapTier = MAP_TIERS.COMMON, rng = Math.random, { boss = false, firstRun = false } = {}) {
+    const selectedMapTier = resolveMapTier(mapTier) || MAP_TIERS.COMMON;
+    const weights = TIER_LIST.map((candidate) => {
+        const difference = candidate.rank - selectedMapTier.rank;
+        if (difference <= 0) {
+            // O tier do mapa e os tiers abaixo continuam sendo os resultados normais.
+            return candidate.rank === selectedMapTier.rank ? 6 : 3 / (selectedMapTier.rank - candidate.rank + 1);
+        }
+        // Cada nível acima reduz bastante a chance. Bosses só recebem esta vantagem na primeira run.
+        const baseChance = boss && firstRun ? 0.25 : selectedMapTier.aboveTierBaseChance;
+        return baseChance * (0.25 ** (difference - 1));
+    });
+    const total = weights.reduce((sum, weight) => sum + weight, 0);
+    let roll = rng() * total;
+    const selectedIndex = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
+    const selected = TIER_LIST[Math.max(0, selectedIndex)];
+    return { tier: selected, exception: selected.rank > selectedMapTier.rank, difference: selected.rank - selectedMapTier.rank };
 }
 
 function createTerrain(biome, width, height, path, rng) {
@@ -127,16 +131,16 @@ function addResources(map, biome, tier, rng) {
 function addLoot(map, biome, tier, rng, firstRun) {
     const containers = map.interactables.filter((item) => ["crate", "barrel", "chest", "altar"].includes(item.type));
     return containers.map((container) => {
-        const roll = rollTier(tier, rng, { firstRun });
+        const roll = rollLootTier(tier, rng, { firstRun });
         const category = weightedChoice(biome.lootBias, rng);
-        return { x: container.x, y: container.y, source: container.type, exception: roll.exception, item: generateItem({ category, tier: roll.tier.id, level: tier.rank, rng }) };
+        return { x: container.x, y: container.y, source: container.type, exception: roll.exception, tierDifference: roll.difference, item: generateItem({ category, tier: roll.tier.id, level: tier.rank, rng }) };
     });
 }
 
 export function generateBossLoot({ mapTier = "common", firstRun = false, level = 1, seed } = {}) {
     const tier = resolveMapTier(mapTier);
     const rng = createRng(seed);
-    const roll = rollTier(tier, rng, { boss: true, firstRun });
+    const roll = rollLootTier(tier, rng, { boss: true, firstRun });
     return { source: "boss", firstRun, exception: roll.exception, item: generateItem({ category: weightedChoice({ weapon: 3, equipment: 3, tool: 1, consumable: 1 }, rng), tier: roll.tier.id, level, rng }) };
 }
 
@@ -146,7 +150,7 @@ export function generateMap({ biome = "sewers", tier = "common", level = 1, widt
     const rng = createRng(seed);
     const path = buildPath(width, height, rng);
     const terrain = createTerrain(selectedBiome, width, height, path, rng);
-    const map = { number: level, width, height, tileSize: 40, biome: selectedBiome.id, tier: selectedTier.id, seed, ...terrain, interactables: [], enemies: [], resources: [], loot: [], door: { x: width - 1, y: height - 1 }, lootRules: { maximumNormalTier: selectedTier.id, bossFirstRunException: true } };
+    const map = { number: level, width, height, tileSize: 40, biome: selectedBiome.id, tier: selectedTier.id, tierRank: selectedTier.rank, seed, ...terrain, interactables: [], enemies: [], resources: [], loot: [], door: { x: width - 1, y: height - 1 }, lootRules: { mapTier: selectedTier.id, mapTierRank: selectedTier.rank, aboveTierBaseChance: selectedTier.aboveTierBaseChance, higherTierChanceFallsBy: 0.25, bossFirstRunException: true } };
     map.interactables = addInteractables(map, selectedBiome, selectedTier, rng);
     map.enemies = addEnemies(map, selectedBiome, selectedTier, rng);
     map.resources = addResources(map, selectedBiome, selectedTier, rng);
