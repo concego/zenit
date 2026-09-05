@@ -3,7 +3,7 @@ import { createLevel, getBoxAt, getPropAt, isBlocked, isDoor, isInside, isWall, 
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
 import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
-import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, learnSkill, useSkillHotkey } from "./skill-generator.js";
+import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 
 const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
@@ -43,6 +43,8 @@ function skillLabel(state, skill) { return getText(state.language, `skills.names
 
 function skillDescription(state, skill) { return getText(state.language, `skills.descriptions.${skill.id}`); }
 
+function skillResourceLabel(state, resource) { return resource === "stamina" ? t(state, "stamina") : resource === "mana" ? t(state, "mana") : t(state, "hp"); }
+
 function skillDetail(state, skillId) {
     const skill = state.player.skills.skills.find((item) => item.id === skillId);
     if (!skill) return m(state, "skillUnavailable");
@@ -53,16 +55,56 @@ function skillDetail(state, skillId) {
     const result = canLearnSkill(state.player.skills, skill.id, state.player.attributes);
     const shortcut = getSkillAssignedSlot(state.player.skills, skill.id);
     const status = skill.level >= skill.maxLevel ? m(state, "skillMax") : result.allowed ? m(state, "skillReady") : result.reason === "skill_points" ? m(state, "skillNeedPoints") : result.reason === "requirements" ? m(state, "skillNeedRequirements") : "";
-    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
+    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillUseCost")}: ${skillResourceLabel(state, skill.resource)} ${skill.resourceCost + skill.level - 1}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
+}
+
+function activateSkillEffects(state, skill) {
+    const player = state.player;
+    player.skillState = player.skillState || { buffs: {}, pendingAttack: null, companion: null };
+    const level = skill.level;
+    const cost = (skill.resourceCost || 1) + level - 1;
+    const resource = skill.resource;
+    const resourceFields = { hp: ["hpAtual", "hpMax"], stamina: ["estAtual", "estMax"], mana: ["manaAtual", "manaMax"] };
+    const resourceField = resourceFields[resource];
+    const actualCost = resource === "hp" && skill.effects.hpCost ? getSkillEffect(skill, "hpCost") : cost;
+    if (resourceField && player.stats[resourceField[0]] < actualCost) return { allowed: false, reason: "resource", cost: actualCost, resource };
+    if (resourceField) player.stats[resourceField[0]] -= actualCost;
+
+    const outcome = [];
+    const heal = getSkillEffect(skill, "heal");
+    const stamina = getSkillEffect(skill, "stamina");
+    if (heal) { const before = player.stats.hpAtual; player.stats.hpAtual = Math.min(player.stats.hpMax, player.stats.hpAtual + heal); outcome.push(`${m(state, "skillHeal")}: ${player.stats.hpAtual - before}`); }
+    if (stamina) { const before = player.stats.estAtual; player.stats.estAtual = Math.min(player.stats.estMax, player.stats.estAtual + stamina); outcome.push(`${m(state, "skillStamina")}: ${player.stats.estAtual - before}`); }
+
+    const attackEffects = ["damage", "poison", "stagger", "control", "critical"];
+    const pending = {};
+    attackEffects.forEach((effect) => { const value = getSkillEffect(skill, effect); if (value) pending[effect] = value; });
+    const range = getSkillEffect(skill, "range");
+    if (range) pending.range = range;
+    if (Object.keys(pending).length) { player.skillState.pendingAttack = { skillId: skill.id, ...pending }; outcome.push(m(state, "skillNextAttack")); }
+
+    const persistentEffects = ["armor", "damageReduction", "accuracy", "evasion", "resistance", "block", "movement", "power", "coordination"];
+    const activeEffects = {};
+    persistentEffects.forEach((effect) => { const value = getSkillEffect(skill, effect); if (value) activeEffects[effect] = value; });
+    if (Object.keys(activeEffects).length) { player.skillState.buffs[skill.id] = { level, effects: activeEffects }; outcome.push(m(state, "skillEffectActive")); }
+    const companionDamage = getSkillEffect(skill, "companionDamage");
+    if (companionDamage) { player.skillState.companion = { damage: companionDamage, hp: getSkillEffect(skill, "companionHp"), skillId: skill.id }; outcome.push(m(state, "skillCompanion")); }
+    player.skillState.lastUsed = skill.id;
+    return { allowed: true, cost: actualCost, resource, outcome };
 }
 
 function useAssignedSkill(state, slot, announce) {
     const result = useSkillHotkey(state.player.skills, slot, state.player.attributes);
     if (!result.allowed) {
-        announce(result.reason === "unassigned" ? `${m(state, "skillSlot")} ${slot}: ${m(state, "skillUnassigned")}` : `${m(state, "skillCannotUse")}`);
+        if (result.reason === "unassigned") announce(`${m(state, "skillSlot")} ${slot}: ${m(state, "skillUnassigned")}`);
+        else if (result.reason === "resource") announce(`${m(state, "skillNoResource")}: ${result.resource === "stamina" ? t(state, "stamina") : result.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`);
+        else announce(m(state, "skillCannotUse"));
         return;
     }
-    announce(`${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}`);
+    const activation = activateSkillEffects(state, result.skill);
+    if (!activation.allowed) { announce(`${m(state, "skillNoResource")}: ${activation.resource === "stamina" ? t(state, "stamina") : activation.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`); return; }
+    const details = activation.outcome.length ? ` ${activation.outcome.join(" ")}.` : "";
+    announce(`${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}${details}`);
 }
 
 function frontPosition(state) {
@@ -105,16 +147,19 @@ function scan(state, announce) {
 function attack(state, announce, render) {
     const weapon = state.player.instanciaAtiva === "MELEE" ? state.player.equipment.armaMelee : state.player.equipment.armaRanged;
     if (!weapon) { announce(m(state, "noWeapon")); return; }
-    const vector = getDirectionVector(state.player.dir); const range = weapon.alcance !== undefined ? weapon.alcance : 1;
+    const pendingAttack = state.player.skillState?.pendingAttack || null;
+    const bonusText = pendingAttack?.damage ? ` ${m(state, "skillAttackBonus")}: ${pendingAttack.damage}.` : "";
+    const vector = getDirectionVector(state.player.dir); const range = pendingAttack?.range || (weapon.alcance !== undefined ? weapon.alcance : 1);
     for (let distance = 1; distance <= range; distance += 1) {
         const x = state.player.x + vector.dx * distance; const y = state.player.y + vector.dy * distance;
         if (!isInside(state.level, x, y)) break;
-        if (isWall(state.level, x, y)) { announce(`${m(state, "attackWall")} X ${x}, Y ${y}.`); return; }
-        if (isDoor(state.level, x, y)) { announce(m(state, "attackDoor")); return; }
+        if (isWall(state.level, x, y)) { state.player.skillState.pendingAttack = null; announce(`${m(state, "attackWall")} X ${x}, Y ${y}.${bonusText}`); return; }
+        if (isDoor(state.level, x, y)) { state.player.skillState.pendingAttack = null; announce(`${m(state, "attackDoor")}${bonusText}`); return; }
         const box = getBoxAt(state.level, x, y);
-        if (box) { state.player.stats.ouro += box.ouro; removeBox(state.level, box); announce(`${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")} ${box.ouro} ${t(state, "gold")}. ${m(state, "total")}: ${state.player.stats.ouro}.`); render(); return; }
+        if (box) { state.player.stats.ouro += box.ouro; removeBox(state.level, box); state.player.skillState.pendingAttack = null; announce(`${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")} ${box.ouro} ${t(state, "gold")}. ${m(state, "total")}: ${state.player.stats.ouro}.${bonusText}`); render(); return; }
     }
-    announce(`${m(state, "attackDone")} ${itemName(state, weapon.nome)}. ${m(state, "noTarget")}`);
+    state.player.skillState.pendingAttack = null;
+    announce(`${m(state, "attackDone")} ${itemName(state, weapon.nome)}.${bonusText} ${m(state, "noTarget")}`);
 }
 
 function interact(state, announce, render) {

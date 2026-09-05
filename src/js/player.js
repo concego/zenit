@@ -38,6 +38,7 @@ export function createPlayer(character = null) {
     const player = {
         character,
         skills: createCharacterSkillSet({ classKey: character?.classKey || "vanguard", seed: character?.skillSeed ?? character?.name ?? character?.presetKey }),
+        skillState: { buffs: {}, pendingAttack: null, companion: null },
         x: 0,
         y: 0,
         dir: "DIREITA",

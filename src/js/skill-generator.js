@@ -31,6 +31,7 @@ function createSkillInstance(template, { classKey, source = "generated", rng, in
         source,
         school: template.school,
         resource: template.resource,
+        resourceCost: Math.max(1, template.baseCost - 1),
         level: source === "fixed" ? 1 : 0,
         maxLevel: template.maxLevel,
         levelCosts,
