@@ -1,4 +1,5 @@
 // Estado do jogador e regras de classes do Zenit.
+import { createCharacterSkillSet } from "./skill-generator.js";
 
 export const CLASSES = Object.freeze({
     VANGUARDA: Object.freeze({
@@ -36,6 +37,7 @@ export function getDirectionVector(direction) {
 export function createPlayer(character = null) {
     const player = {
         character,
+        skills: createCharacterSkillSet({ classKey: character?.classKey || "vanguard", seed: character?.skillSeed ?? character?.name ?? character?.presetKey }),
         x: 0,
         y: 0,
         dir: "DIREITA",

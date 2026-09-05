@@ -32,9 +32,9 @@ const P = {
             presetChanged: "Modelo selecionado.",
             genders: { feminine: "Feminino", masculine: "Masculino" },
             classes: {
-                vanguard: { name: "Vanguarda / Campeão", description: "Especialista em resistência e força. Uma presença firme na linha de frente." },
-                hunter: { name: "Caçador / Patrulheiro", description: "Especialista em agilidade, percepção e ataques precisos à distância." },
-                mystic: { name: "Místico / Erudito", description: "Especialista em mente, conhecimento e forças arcanas." }
+                vanguard: { name: "Vanguarda / Campeão", description: "Especialista em Potência e força bruta. Pode usar magia de suporte, como um paladino, mas esse não é seu foco." },
+                hunter: { name: "Caçador / Patrulheiro", description: "Especialista em Coordenação, precisão e mobilidade. Pode seguir caminhos de arqueiro ou ladino." },
+                mystic: { name: "Místico / Erudito", description: "Especialista em Mente e poderes sobrenaturais, com caminhos de mago, druida ou xamã." }
             },
             presets: {
                 "vanguard-f-1": { description: "Armadura frontal leve, capa vermelha e postura pronta para proteger seus aliados." },
@@ -87,9 +87,9 @@ const P = {
             presetChanged: "Model selected.",
             genders: { feminine: "Feminine", masculine: "Masculine" },
             classes: {
-                vanguard: { name: "Vanguard / Champion", description: "A specialist in resilience and strength. A steady presence on the front line." },
-                hunter: { name: "Hunter / Ranger", description: "A specialist in agility, perception, and precise attacks from a distance." },
-                mystic: { name: "Mystic / Scholar", description: "A specialist in the mind, knowledge, and arcane forces." }
+                vanguard: { name: "Vanguard / Champion", description: "A specialist in Power and brute force. They may use support magic like a paladin, but it is not their focus." },
+                hunter: { name: "Hunter / Ranger", description: "A specialist in Coordination, precision, and mobility. They may follow an archer or rogue path." },
+                mystic: { name: "Mystic / Scholar", description: "A specialist in Mind and supernatural powers, with mage, druid, or shaman paths." }
             },
             presets: {
                 "vanguard-f-1": { description: "Light front armor, a red cape, and a stance ready to protect allies." },
