@@ -3,7 +3,7 @@ import { createLevel, getBoxAt, getPropAt, isBlocked, isDoor, isInside, isWall, 
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
 import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
-import { canLearnSkill, learnSkill } from "./skill-generator.js";
+import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, learnSkill, useSkillHotkey } from "./skill-generator.js";
 
 const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
@@ -51,8 +51,18 @@ function skillDetail(state, skillId) {
     Object.entries(skill.requirements.attributes || {}).forEach(([attribute, value]) => requirementParts.push(`${t(state, attribute === "potencia" ? "power" : attribute === "coordenacao" ? "coordination" : "mind")}: ${value}`));
     (skill.requirements.skills || []).forEach((requirement) => requirementParts.push(`${skillLabel(state, state.player.skills.skills.find((item) => item.id === requirement.id) || { id: requirement.id })} ${t(state, "skillLevelShort")}: ${requirement.level}`));
     const result = canLearnSkill(state.player.skills, skill.id, state.player.attributes);
+    const shortcut = getSkillAssignedSlot(state.player.skills, skill.id);
     const status = skill.level >= skill.maxLevel ? m(state, "skillMax") : result.allowed ? m(state, "skillReady") : result.reason === "skill_points" ? m(state, "skillNeedPoints") : result.reason === "requirements" ? m(state, "skillNeedRequirements") : "";
-    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${status}`;
+    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
+}
+
+function useAssignedSkill(state, slot, announce) {
+    const result = useSkillHotkey(state.player.skills, slot, state.player.attributes);
+    if (!result.allowed) {
+        announce(result.reason === "unassigned" ? `${m(state, "skillSlot")} ${slot}: ${m(state, "skillUnassigned")}` : `${m(state, "skillCannotUse")}`);
+        return;
+    }
+    announce(`${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}`);
 }
 
 function frontPosition(state) {
@@ -123,6 +133,14 @@ function toggleWeapon(state, announce) {
 function handleMenuKey(state, event, announce) {
     const { key } = event;
     const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : state.gameState === "MENU_HABILIDADES" ? skillsMenu(state) : MAIN_MENU;
+    if (state.gameState === "MENU_HABILIDADES" && /^[0-9]$/.test(key)) {
+        const skillId = skillsMenu(state)[state.menuIndex];
+        const skill = state.player.skills.skills.find((item) => item.id === skillId);
+        const result = assignSkillHotkey(state.player.skills, key, skillId);
+        if (result.allowed) { playMenuConfirm(); announce(`${skillLabel(state, skill)}: ${m(state, "skillAssigned")} ${key}.`); }
+        else { playMenuCancel(); announce(m(state, "skillMustBeLearned")); }
+        return true;
+    }
     if (key === "ArrowUp" || key === "ArrowDown") {
         playMenuScroll();
         const increment = key === "ArrowDown" ? 1 : -1;
@@ -165,8 +183,9 @@ export function installInput({ state, announce, render }) {
     function onKeyDown(event) {
         if (state.gameState.startsWith("FRONT_")) return;
         if (state.gameState !== "NORMAL") { if (handleMenuKey(state, event, announce)) event.preventDefault(); return; }
-        const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isGameKey = isArrow || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey) event.preventDefault();
-        if (lowerKey === "s") scan(state, announce);
+        const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isNumberHotkey = /^[0-9]$/.test(key); const isGameKey = isArrow || isNumberHotkey || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey) event.preventDefault();
+        if (isNumberHotkey) useAssignedSkill(state, key, announce);
+        else if (lowerKey === "s") scan(state, announce);
         else if (lowerKey === "c") { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = 0; announce(`${t(state, "mainMenu")}. ${m(state, "menuHint")}`); }
         else if (lowerKey === "t") announce(`${m(state, "looking")} ${direction(state, state.player.dir)}.`);
         else if (lowerKey === "w") toggleWeapon(state, announce);

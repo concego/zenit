@@ -63,7 +63,7 @@ export function createCharacterSkillSet({ classKey = "vanguard", seed, generated
         available.splice(selectedIndex, 1);
         skills.push(createSkillInstance(selected, { classKey: normalizedClass, source: "generated", rng, index: index + 1 }));
     }
-    return { generationSeed, classKey: normalizedClass, level: 1, skillPoints: startingPoints, skills };
+    return { generationSeed, classKey: normalizedClass, level: 1, skillPoints: startingPoints, skills, hotkeys: {} };
 }
 
 function findSkill(skillSet, skillId) { return skillSet?.skills?.find((skill) => skill.id === skillId) || null; }
@@ -113,6 +113,32 @@ export function canUseSkill(skillSet, skillId, attributes = {}) {
     if (!skill || skill.level < 1) return { allowed: false, reason: "not_learned", skill };
     const requirements = checkSkillRequirements(skillSet, skill, attributes);
     return requirements.satisfied ? { allowed: true, skill } : { allowed: false, reason: "requirements", skill, requirements };
+}
+
+export function assignSkillHotkey(skillSet, slot, skillId) {
+    const normalizedSlot = String(slot);
+    if (!/^[0-9]$/.test(normalizedSlot)) return { allowed: false, reason: "invalid_slot" };
+    const skill = findSkill(skillSet, skillId);
+    if (!skill || skill.level < 1) return { allowed: false, reason: "not_learned", skill };
+    const previousSkillId = skillSet.hotkeys?.[normalizedSlot] || null;
+    skillSet.hotkeys = { ...(skillSet.hotkeys || {}), [normalizedSlot]: skill.id };
+    return { allowed: true, slot: normalizedSlot, skill, previousSkillId };
+}
+
+export function getSkillHotkey(skillSet, slot) {
+    return skillSet?.hotkeys?.[String(slot)] || null;
+}
+
+export function getSkillAssignedSlot(skillSet, skillId) {
+    const entry = Object.entries(skillSet?.hotkeys || {}).find(([, assignedSkillId]) => assignedSkillId === skillId);
+    return entry ? entry[0] : null;
+}
+
+export function useSkillHotkey(skillSet, slot, attributes = {}) {
+    const skillId = getSkillHotkey(skillSet, slot);
+    if (!skillId) return { allowed: false, reason: "unassigned", slot: String(slot) };
+    const result = canUseSkill(skillSet, skillId, attributes);
+    return result.allowed ? { allowed: true, slot: String(slot), skill: result.skill } : { ...result, slot: String(slot) };
 }
 
 export function getSkillEffect(skill, effectKey) {
