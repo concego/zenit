@@ -67,10 +67,10 @@ function createSewerEnemies() {
     const placements = [
         { species: "rat", x: 1, y: 3 },
         { species: "slime", x: 3, y: 3 },
-        { species: "cultist", x: 6, y: 2 },
+        { species: "spider", x: 6, y: 2 },
         { species: "rat", x: 8, y: 2 },
         { species: "slime", x: 7, y: 5 },
-        { species: "cultist", x: 1, y: 6 },
+        { species: "spider", x: 1, y: 6 },
         { species: "rat", x: 8, y: 8 }
     ];
     const enemies = placements.map((placement) => ({ ...generateEnemy({ biome: "sewers", tier: "common", species: placement.species, level: 1, rng }), x: placement.x, y: placement.y }));

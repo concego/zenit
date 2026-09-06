@@ -66,6 +66,13 @@ function renderEnemy(svgCanvas, enemy, tileSize) {
         svgCanvas.appendChild(createSvgElement("circle", { cx, cy, r: 11, fill, stroke: "#20192a", "stroke-width": 1.5, "aria-hidden": "true" }));
     } else if (enemy.species === "slime") {
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${cx - 13} ${cy + 10} Q ${cx - 15} ${cy - 8} ${cx - 7} ${cy - 12} Q ${cx} ${cy - 17} ${cx + 8} ${cy - 10} Q ${cx + 16} ${cy - 5} ${cx + 12} ${cy + 10} Z`, fill, stroke: "#a7ead0", "stroke-width": 1.5, "aria-hidden": "true" }));
+    } else if (enemy.species === "spider") {
+        for (const direction of [-1, 1]) {
+            svgCanvas.appendChild(createSvgElement("path", { d: `M ${cx + direction * 5} ${cy - 4} L ${cx + direction * 14} ${cy - 11} M ${cx + direction * 6} ${cy} L ${cx + direction * 16} ${cy} M ${cx + direction * 5} ${cy + 5} L ${cx + direction * 14} ${cy + 12}`, stroke: "#c9a2d2", "stroke-width": 2, "aria-hidden": "true" }));
+        }
+        svgCanvas.appendChild(createSvgElement("ellipse", { cx, cy, rx: 8, ry: 10, fill, stroke: "#e1b4e8", "stroke-width": 1.5, "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx: cx - 3, cy: cy - 3, r: 1.5, fill: "#fff0a6", "aria-hidden": "true" }));
+        svgCanvas.appendChild(createSvgElement("circle", { cx: cx + 3, cy: cy - 3, r: 1.5, fill: "#fff0a6", "aria-hidden": "true" }));
     } else if (enemy.species === "cultist") {
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${cx - 12} ${cy + 12} L ${cx} ${cy - 14} L ${cx + 12} ${cy + 12} Z`, fill, stroke: "#d4a8dc", "stroke-width": 1.5, "aria-hidden": "true" }));
         svgCanvas.appendChild(createSvgElement("circle", { cx, cy: cy - 1, r: 5, fill: "#221b2c", "aria-hidden": "true" }));
