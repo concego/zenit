@@ -95,7 +95,7 @@ function activateSkillEffects(state, skill) {
     return { allowed: true, cost: actualCost, resource, outcome };
 }
 
-function useAssignedSkill(state, slot, announce) {
+function useAssignedSkill(state, slot, announce, render) {
     const result = useSkillHotkey(state.player.skills, slot, state.player.attributes);
     if (!result.allowed) {
         if (result.reason === "unassigned") announce(`${m(state, "skillSlot")} ${slot}: ${m(state, "skillUnassigned")}`);
@@ -107,6 +107,7 @@ function useAssignedSkill(state, slot, announce) {
     if (!activation.allowed) { announce(`${m(state, "skillNoResource")}: ${activation.resource === "stamina" ? t(state, "stamina") : activation.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`); return; }
     const details = activation.outcome.length ? ` ${activation.outcome.join(" ")}.` : "";
     announce(withEnemyReactions(state, `${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}${details}`));
+    render();
 }
 
 function frontPosition(state) {
@@ -279,7 +280,7 @@ export function installInput({ state, announce, render }) {
         if (state.gameState.startsWith("FRONT_")) return;
         if (state.gameState !== "NORMAL") { if (handleMenuKey(state, event, announce)) event.preventDefault(); return; }
         const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isNumberHotkey = /^[0-9]$/.test(key); const isGameKey = isArrow || isNumberHotkey || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey) event.preventDefault();
-        if (isNumberHotkey) useAssignedSkill(state, key, announce);
+        if (isNumberHotkey) useAssignedSkill(state, key, announce, render);
         else if (lowerKey === "s") scan(state, announce);
         else if (lowerKey === "c") { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = 0; announce(`${t(state, "mainMenu")}. ${m(state, "menuHint")}`); }
         else if (lowerKey === "t") announce(`${m(state, "looking")} ${direction(state, state.player.dir)}.`);

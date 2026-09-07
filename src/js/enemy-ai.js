@@ -4,9 +4,9 @@ import { isBlocked, isInside } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 
 const RULES = Object.freeze({
-    rat: Object.freeze({ detection: 6, moveChance: 0.8 }),
-    spider: Object.freeze({ detection: 4, moveChance: 0.7, ambushDistance: 3 }),
-    slime: Object.freeze({ detection: 4, moveChance: 0.55, slow: true })
+    rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
+    spider: Object.freeze({ detection: 5, moveChance: 0.85, ambushDistance: 4 }),
+    slime: Object.freeze({ detection: 5, moveChance: 0.7, slow: true })
 });
 
 function message(state, key) { return getText(state.language, `gameplay.messages.${key}`); }
@@ -41,8 +41,15 @@ function enemyAttack(state, enemy) {
     const effectiveHit = hitChance * (1 - getDodgeChance({ coordination: state.player.attributes.coordenacao }));
     if (Math.random() > effectiveHit) return `${label(state, enemy)} ${message(state, "enemyMisses")}.`;
     const critical = Math.random() < getCriticalChance({ coordination: enemy.stats.coordination || 10 });
-    const damage = calculateDamage({ attackPower: enemy.stats.damage, targetDefense: playerDefense(state), critical });
+    const pressureMultiplier = enemy.isBoss ? 1.4 : 1.2;
+    const damage = calculateDamage({ attackPower: Math.round(enemy.stats.damage * pressureMultiplier), targetDefense: playerDefense(state), critical });
     state.player.stats.hpAtual = Math.max(0, state.player.stats.hpAtual - damage);
+    if (state.player.stats.hpAtual <= 0) {
+        state.gameState = "FRONT_MAIN";
+        state.hasSave = false;
+        state.menuIndex = 1;
+        return `${label(state, enemy)} ${message(state, "enemyHits")}: ${damage}. ${message(state, "playerDefeated")}`;
+    }
     return `${label(state, enemy)} ${message(state, "enemyHits")}: ${damage}. ${message(state, "playerHp")}: ${state.player.stats.hpAtual}.`;
 }
 
@@ -58,10 +65,11 @@ function reactEnemy(state, enemy) {
 }
 
 export function runEnemyTurn(state) {
-    if (!state.level?.enemies?.length || state.player.stats.hpAtual <= 0) return [];
+    if (state.gameState !== "NORMAL" || !state.level?.enemies?.length || state.player.stats.hpAtual <= 0) return [];
     state.turn = (state.turn || 0) + 1;
     const reactions = [];
     [...state.level.enemies].forEach((enemy) => {
+        if (state.player.stats.hpAtual <= 0 || state.gameState !== "NORMAL") return;
         const reaction = reactEnemy(state, enemy);
         if (reaction) reactions.push(reaction);
     });
