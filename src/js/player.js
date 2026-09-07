@@ -57,6 +57,7 @@ export function createPlayer(character = null) {
             ouro: 0
         },
         craftingMaterials: {},
+        inventory: [],
         equipment: {
             cabeca: null,
             pescoco: null,

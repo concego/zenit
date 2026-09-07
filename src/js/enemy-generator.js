@@ -69,7 +69,7 @@ export function generateBossEnemy({ biome = "sewers", tier = "common", species, 
 export function generateEnemyLoot(enemy, { firstRun = false, seed, rng } = {}) {
     const random = typeof rng === "function" ? rng : createRng(seed);
     const species = ENEMY_SPECIES[enemy.species];
-    if (!species) return { materials: [], items: [] };
+    if (!species) return { materials: [], items: [], gold: 0 };
     const rank = enemy.tierRank || 1;
     const bossMultiplier = enemy.isBoss ? (firstRun ? 2 : 1.5) : 1;
     const materials = species.materials.flatMap((material) => {
@@ -79,6 +79,11 @@ export function generateEnemyLoot(enemy, { firstRun = false, seed, rng } = {}) {
         return [{ materialId: material.id, nameKey: material.nameKey, quantity: Math.max(1, Math.round(baseQuantity * bossMultiplier + (enemy.isBoss ? rank - 1 : 0))), tier: enemy.tier }];
     });
     const items = [];
+    let gold = 0;
+    if (species.gold && random() <= species.gold.chance) {
+        const baseGold = species.gold.min + Math.floor(random() * (species.gold.max - species.gold.min + 1));
+        gold = Math.max(1, Math.round(baseGold * bossMultiplier * (1 + (rank - 1) * 0.25)));
+    }
     if (species.itemCategories?.length) {
         const itemChance = enemy.isBoss ? (firstRun ? 0.8 : 0.35) : 0.12;
         if (random() < itemChance) {
@@ -86,7 +91,7 @@ export function generateEnemyLoot(enemy, { firstRun = false, seed, rng } = {}) {
             items.push(generateItem({ category, tier: enemy.tier, level: enemy.level, rng: random }));
         }
     }
-    return { materials, items };
+    return { materials, items, gold };
 }
 
 export function getEnemySpecies(speciesId) { return ENEMY_SPECIES[speciesId] || null; }

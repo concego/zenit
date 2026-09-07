@@ -156,6 +156,11 @@ function collectEnemyLoot(state, enemy) {
         state.player.craftingMaterials[material.materialId] = (state.player.craftingMaterials[material.materialId] || 0) + material.quantity;
         found.push(`${material.quantity} ${getText(state.language, material.nameKey)}`);
     });
+    (loot.items || []).forEach((item) => {
+        state.player.inventory.push(item);
+        found.push(`${m(state, "enemyItem")}: ${item.templateId}`);
+    });
+    if (loot.gold) { state.player.stats.ouro += loot.gold; found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "enemyLoot")}: ${found.join(", ")}.` : "";
 }
 
