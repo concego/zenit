@@ -56,7 +56,8 @@ function startGame() {
         characterFocus: 0,
         characterNameEditing: false,
         menuIndex: 0,
-        hasSave: false
+        hasSave: false,
+        turn: 0
     };
 
     let announcementTimer = null;
@@ -134,6 +135,7 @@ function startGame() {
         state.levelNumber = 1;
         state.level = createLevel(1);
         state.player = createPlayer(state.character);
+        state.turn = 0;
         state.hasSave = true;
         render();
         elements.svgCanvas.focus();
