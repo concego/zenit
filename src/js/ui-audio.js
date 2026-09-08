@@ -15,6 +15,7 @@ const SOUND_IDS = Object.freeze({
     slimeBossAttack: "slimeBossAttackSound",
     slimeBossHit: "slimeBossHitSound",
     slimeHit: "slimeHitSound",
+    mysticSpell: "mysticSpellSound",
     swing: ["battleSwingSound", "battleSwing2Sound", "battleSwing3Sound"],
     unsheathe: ["battleUnsheatheSound", "battleUnsheathe2Sound", "battleUnsheathe3Sound", "battleUnsheathe4Sound", "battleUnsheathe5Sound"]
 });
@@ -44,5 +45,6 @@ export function playSlimeBossStep() { playSound("slimeBossStep"); }
 export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
 export function playSlimeHit() { playSound("slimeHit"); }
+export function playMysticSpell() { playSound("mysticSpell"); }
 export function playMeleeSwing() { playSound("swing"); }
 export function playWeaponUnsheathe() { playSound("unsheathe"); }

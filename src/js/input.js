@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=menu-files1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=audio-mystic1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -105,6 +105,7 @@ function useAssignedSkill(state, slot, announce, render) {
     }
     const activation = activateSkillEffects(state, result.skill);
     if (!activation.allowed) { announce(`${m(state, "skillNoResource")}: ${activation.resource === "stamina" ? t(state, "stamina") : activation.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`); return; }
+    if (result.skill.id === "arcane_spark") playMysticSpell();
     const details = activation.outcome.length ? ` ${activation.outcome.join(" ")}.` : "";
     announce(withEnemyReactions(state, `${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}${details}`));
     render();
