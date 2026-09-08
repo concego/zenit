@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
+import { playCoin, playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -165,7 +165,7 @@ function collectEnemyLoot(state, enemy) {
         state.player.inventory.push(item);
         found.push(`${m(state, "enemyItem")}: ${item.templateId}`);
     });
-    if (loot.gold) { state.player.stats.ouro += loot.gold; found.push(`${loot.gold} ${t(state, "gold")}`); }
+    if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "enemyLoot")}: ${found.join(", ")}.` : "";
 }
 
@@ -178,7 +178,7 @@ function collectContainerLoot(state, container) {
     if (!loot) return "";
     const found = [];
     (loot.items || []).forEach((item) => { state.player.inventory.push(item); found.push(`${m(state, "enemyItem")}: ${item.templateId}`); });
-    if (loot.gold) { state.player.stats.ouro += loot.gold; found.push(`${loot.gold} ${t(state, "gold")}`); }
+    if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "containerLoot")}: ${found.join(", ")}.` : "";
 }
 
