@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=audio-mystic1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=ui-text-fix1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -11,6 +11,19 @@ const t = (state, key) => getText(state.language, `gameplay.${key}`);
 const m = (state, key) => getText(state.language, `gameplay.messages.${key}`);
 const direction = (state, key) => getText(state.language, `gameplay.direction.${key}`);
 const itemName = (state, name) => getText(state.language, `gameplay.item.${name}`);
+const ITEM_FALLBACK_NAMES = Object.freeze({
+    "pt-BR": { healing_potion: "Poção de cura", stamina_tonic: "Tônico de estamina", mana_tonic: "Tônico de mana", antidote: "Antídoto", repair_kit: "Kit de reparo", hood: "Capuz", helmet: "Elmo", amulet: "Amuleto", ring: "Anel", vest: "Colete", cuirass: "Couraça", belt: "Cinto", boots: "Botas", short_sword: "Espada curta", mace: "Maça", spear: "Lança", short_bow: "Arco curto", crossbow: "Besta", wand: "Varinha", lockpick: "Gazua", pickaxe: "Picareta", hammer: "Martelo", shovel: "Pá", sewing_kit: "Kit de costura", field_kit: "Kit de campo" },
+    en: { healing_potion: "Healing potion", stamina_tonic: "Stamina tonic", mana_tonic: "Mana tonic", antidote: "Antidote", repair_kit: "Repair kit", hood: "Hood", helmet: "Helmet", amulet: "Amulet", ring: "Ring", vest: "Vest", cuirass: "Cuirass", belt: "Belt", boots: "Boots", short_sword: "Short sword", mace: "Mace", spear: "Spear", short_bow: "Short bow", crossbow: "Crossbow", wand: "Wand", lockpick: "Lockpick", pickaxe: "Pickaxe", hammer: "Hammer", shovel: "Shovel", sewing_kit: "Sewing kit", field_kit: "Field kit" }
+});
+function itemDisplayName(state, item) {
+    if (!item) return t(state, "empty");
+    if (item.nameKey) {
+        const translated = getText(state.language, item.nameKey);
+        if (translated !== item.nameKey) return translated;
+    }
+    if (item.templateId) return ITEM_FALLBACK_NAMES[state.language]?.[item.templateId] || item.templateId.replaceAll("_", " ");
+    return itemName(state, item.nome);
+}
 
 const MAIN_MENU = ["status", "inventory", "equipment", "skills"];
 const STATUS_MENU = ["class", "power", "coordination", "mind", "hp", "stamina", "mana", "gold"];
@@ -37,13 +50,14 @@ function statusDetail(state, player, option) {
 function equipmentDetail(state, player, option) {
     const item = player.equipment[equipmentByKey[option]];
     const range = item && item.alcance !== undefined ? item.alcance : 1;
-    const name = item ? `${itemName(state, item.nome)} (${t(state, "range")}: ${range})` : t(state, "empty");
+    const name = item ? `${itemDisplayName(state, item)} (${t(state, "range")}: ${range})` : t(state, "empty");
     return `${t(state, option)}: ${name}.`;
 }
 
-function skillLabel(state, skill) { return getText(state.language, `skills.names.${skill.id}`); }
+function skillTranslationKey(skill) { return skill.nameKey?.split(".").pop() || skill.id.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); }
+function skillLabel(state, skill) { return getText(state.language, `skills.names.${skillTranslationKey(skill)}`); }
 
-function skillDescription(state, skill) { return getText(state.language, `skills.descriptions.${skill.id}`); }
+function skillDescription(state, skill) { return getText(state.language, `skills.descriptions.${skillTranslationKey(skill)}`); }
 
 function skillResourceLabel(state, resource) { return resource === "stamina" ? t(state, "stamina") : resource === "mana" ? t(state, "mana") : t(state, "hp"); }
 
@@ -172,7 +186,7 @@ function collectEnemyLoot(state, enemy) {
     (loot.items || []).forEach((item) => {
         state.player.inventory.push(item);
         playLootItemSound(item);
-        found.push(`${m(state, "enemyItem")}: ${item.templateId}`);
+        found.push(`${m(state, "enemyItem")}: ${itemDisplayName(state, item)}`);
     });
     if (loot.gold) { state.player.stats.ouro += loot.gold; playCoinDrop(); playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "enemyLoot")}: ${found.join(", ")}.` : "";
@@ -187,7 +201,7 @@ function collectContainerLoot(state, container) {
     if (!loot) return "";
     const found = [];
     if (loot.source === "chest") playChest();
-    (loot.items || []).forEach((item) => { state.player.inventory.push(item); playLootItemSound(item); found.push(`${m(state, "enemyItem")}: ${item.templateId}`); });
+    (loot.items || []).forEach((item) => { state.player.inventory.push(item); playLootItemSound(item); found.push(`${m(state, "enemyItem")}: ${itemDisplayName(state, item)}`); });
     if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "containerLoot")}: ${found.join(", ")}.` : "";
 }
