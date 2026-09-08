@@ -14,11 +14,15 @@ const SOUND_IDS = Object.freeze({
     slimeBossStep: "slimeBossStepSound",
     slimeBossAttack: "slimeBossAttackSound",
     slimeBossHit: "slimeBossHitSound",
-    slimeHit: "slimeHitSound"
+    slimeHit: "slimeHitSound",
+    swing: ["battleSwingSound", "battleSwing2Sound", "battleSwing3Sound"],
+    unsheathe: ["battleUnsheatheSound", "battleUnsheathe2Sound", "battleUnsheathe3Sound", "battleUnsheathe4Sound", "battleUnsheathe5Sound"]
 });
 
 function playSound(kind) {
-    const audio = document.getElementById(SOUND_IDS[kind]);
+    const soundId = SOUND_IDS[kind];
+    const selectedId = Array.isArray(soundId) ? soundId[Math.floor(Math.random() * soundId.length)] : soundId;
+    const audio = document.getElementById(selectedId);
     if (!audio) return;
     audio.volume = kind === "scroll" ? 0.42 : kind === "coin" || kind === "coinDrop" ? 0.55 : 0.5;
     audio.currentTime = 0;
@@ -40,3 +44,5 @@ export function playSlimeBossStep() { playSound("slimeBossStep"); }
 export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
 export function playSlimeHit() { playSound("slimeHit"); }
+export function playMeleeSwing() { playSound("swing"); }
+export function playWeaponUnsheathe() { playSound("unsheathe"); }

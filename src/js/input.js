@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup, playSlimeHit } from "./ui-audio.js?v=menu-files1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=menu-files1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -155,6 +155,7 @@ function enemyLabel(state, enemy) { return getText(state.language, enemy.nameKey
 
 function playLootItemSound(item) {
     if (item.category === "consumable") playPotionPickup();
+    else if (item.category === "weapon" && item.kind === "melee") playWeaponUnsheathe();
     else if (item.category === "equipment" && item.material === "leather") playLeatherArmor();
     else if (item.category === "equipment" && item.material === "metal") playMetalArmor();
 }
@@ -214,6 +215,7 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
 function attack(state, announce, render) {
     const weapon = state.player.instanciaAtiva === "MELEE" ? state.player.equipment.armaMelee : state.player.equipment.armaRanged;
     if (!weapon) { announce(m(state, "noWeapon")); return; }
+    if (state.player.instanciaAtiva === "MELEE") playMeleeSwing();
     const pendingAttack = state.player.skillState?.pendingAttack || null;
     const bonusText = pendingAttack?.damage ? ` ${m(state, "skillAttackBonus")}: ${pendingAttack.damage}.` : "";
     const vector = getDirectionVector(state.player.dir); const range = pendingAttack?.range || (weapon.alcance !== undefined ? weapon.alcance : 1);
@@ -241,6 +243,7 @@ function interact(state, announce, render) {
 function toggleWeapon(state, announce) {
     state.player.instanciaAtiva = state.player.instanciaAtiva === "MELEE" ? "RANGED" : "MELEE";
     const weapon = state.player.instanciaAtiva === "MELEE" ? state.player.equipment.armaMelee : state.player.equipment.armaRanged;
+    if (state.player.instanciaAtiva === "MELEE" && weapon) playWeaponUnsheathe();
     announce(`${m(state, "activeWeapon")}: ${weapon ? itemName(state, weapon.nome) : m(state, "none")}.`);
 }
 
