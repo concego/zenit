@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=ui-text-fix1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=magic-direct1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -74,7 +74,7 @@ function skillDetail(state, skillId) {
     return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillUseCost")}: ${skillResourceLabel(state, skill.resource)} ${skill.resourceCost + skill.level - 1}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
 }
 
-function activateSkillEffects(state, skill) {
+function activateSkillEffects(state, skill, { prepareAttack = true } = {}) {
     const player = state.player;
     player.skillState = player.skillState || { buffs: {}, pendingAttack: null, companion: null };
     const level = skill.level;
@@ -97,7 +97,7 @@ function activateSkillEffects(state, skill) {
     attackEffects.forEach((effect) => { const value = getSkillEffect(skill, effect); if (value) pending[effect] = value; });
     const range = getSkillEffect(skill, "range");
     if (range) pending.range = range;
-    if (Object.keys(pending).length) { player.skillState.pendingAttack = { skillId: skill.id, ...pending }; outcome.push(m(state, "skillNextAttack")); }
+    if (prepareAttack && Object.keys(pending).length) { player.skillState.pendingAttack = { skillId: skill.id, ...pending }; outcome.push(m(state, "skillNextAttack")); }
 
     const persistentEffects = ["armor", "damageReduction", "accuracy", "evasion", "resistance", "block", "movement", "power", "coordination"];
     const activeEffects = {};
@@ -109,6 +109,61 @@ function activateSkillEffects(state, skill) {
     return { allowed: true, cost: actualCost, resource, outcome };
 }
 
+function isRangedMagicSkill(skill) {
+    return skill.resource === "mana" && getSkillEffect(skill, "damage") > 0 && getSkillEffect(skill, "range") > 0;
+}
+
+function castRangedMagic(state, skill, announce, render) {
+    const pendingAttack = {
+        damage: getSkillEffect(skill, "damage") || 0,
+        range: getSkillEffect(skill, "range") || 1,
+        accuracy: getSkillEffect(skill, "accuracy") || 0,
+        critical: getSkillEffect(skill, "critical") || 0
+    };
+    state.player.skillState.pendingAttack = null;
+    const vector = getDirectionVector(state.player.dir);
+    for (let distance = 1; distance <= pendingAttack.range; distance += 1) {
+        const x = state.player.x + vector.dx * distance;
+        const y = state.player.y + vector.dy * distance;
+        if (!isInside(state.level, x, y)) break;
+        if (isWall(state.level, x, y)) {
+            announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "attackWall")} X ${x}, Y ${y}.`));
+            render();
+            return;
+        }
+        if (isDoor(state.level, x, y)) {
+            announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "attackDoor")}`));
+            render();
+            return;
+        }
+        const enemy = getEnemyAt(state.level, x, y);
+        if (!enemy) continue;
+        const hitChance = getHitChance({ attackerCoordination: state.player.attributes.coordenacao, defenderCoordination: enemy.stats.coordination || 10, weaponAccuracy: 0.03, accuracyBonus: pendingAttack.accuracy });
+        const effectiveHit = hitChance * (1 - getDodgeChance({ coordination: enemy.stats.coordination || 10 }));
+        if (Math.random() > effectiveHit) {
+            announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "attackMissed")} ${enemyLabel(state, enemy)}.`));
+            render();
+            return;
+        }
+        const critical = Math.random() < getCriticalChance({ coordination: state.player.attributes.coordenacao, criticalBonus: pendingAttack.critical });
+        const attackPower = getAttackPower({ attribute: state.player.attributes.mente, kind: "magic", tier: "common", flatBonus: pendingAttack.damage });
+        const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
+        enemy.stats.hpAtual -= damage;
+        if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
+        if (enemy.stats.hpAtual <= 0) {
+            removeEnemy(state.level, enemy);
+            const lootText = collectEnemyLoot(state, enemy);
+            announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "enemyDefeated")} ${enemyLabel(state, enemy)}. ${m(state, "damageDealt")}: ${damage}. ${lootText}`));
+        } else {
+            announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "damageDealt")}: ${damage}. ${enemyLabel(state, enemy)} ${m(state, "enemyRemaining")}: ${enemy.stats.hpAtual}.`));
+        }
+        render();
+        return;
+    }
+    announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "noTarget")}`));
+    render();
+}
+
 function useAssignedSkill(state, slot, announce, render) {
     const result = useSkillHotkey(state.player.skills, slot, state.player.attributes);
     if (!result.allowed) {
@@ -117,9 +172,11 @@ function useAssignedSkill(state, slot, announce, render) {
         else announce(m(state, "skillCannotUse"));
         return;
     }
-    const activation = activateSkillEffects(state, result.skill);
+    const rangedMagic = isRangedMagicSkill(result.skill);
+    const activation = activateSkillEffects(state, result.skill, { prepareAttack: !rangedMagic });
     if (!activation.allowed) { announce(`${m(state, "skillNoResource")}: ${activation.resource === "stamina" ? t(state, "stamina") : activation.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`); return; }
     if (result.skill.id === "arcane_spark") playMysticSpell();
+    if (rangedMagic) { castRangedMagic(state, result.skill, announce, render); return; }
     const details = activation.outcome.length ? ` ${activation.outcome.join(" ")}.` : "";
     announce(withEnemyReactions(state, `${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}${details}`));
     render();
