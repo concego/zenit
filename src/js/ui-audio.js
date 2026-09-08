@@ -16,6 +16,11 @@ const SOUND_IDS = Object.freeze({
     slimeBossHit: "slimeBossHitSound",
     slimeHit: "slimeHitSound",
     mysticSpell: "mysticSpellSound",
+    placeholderFootstep: "placeholderFootstepSound",
+    placeholderEnemyAttack: "placeholderEnemyAttackSound",
+    placeholderEnemyMove: "placeholderEnemyMoveSound",
+    placeholderEnemyHit: "placeholderEnemyHitSound",
+    placeholderMagicCast: "placeholderMagicCastSound",
     swing: ["battleSwingSound", "battleSwing2Sound", "battleSwing3Sound"],
     unsheathe: ["battleUnsheatheSound", "battleUnsheathe2Sound", "battleUnsheathe3Sound", "battleUnsheathe4Sound", "battleUnsheathe5Sound"]
 });
@@ -46,5 +51,10 @@ export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
 export function playSlimeHit() { playSound("slimeHit"); }
 export function playMysticSpell() { playSound("mysticSpell"); }
+export function playPlaceholderFootstep() { playSound("placeholderFootstep"); }
+export function playPlaceholderEnemyAttack() { playSound("placeholderEnemyAttack"); }
+export function playPlaceholderEnemyMove() { playSound("placeholderEnemyMove"); }
+export function playPlaceholderEnemyHit() { playSound("placeholderEnemyHit"); }
+export function playPlaceholderMagicCast() { playSound("placeholderMagicCast"); }
 export function playMeleeSwing() { playSound("swing"); }
 export function playWeaponUnsheathe() { playSound("unsheathe"); }

@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=map-scan-magic1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlaceholderFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=placeholder2";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -122,6 +122,7 @@ function castRangedMagic(state, skill, announce, render) {
         critical: getSkillEffect(skill, "critical") || 0
     };
     state.player.skillState.pendingAttack = null;
+    if (skill.id !== "arcane_spark") playPlaceholderMagicCast();
     const vector = getDirectionVector(state.player.dir);
     for (let distance = 1; distance <= pendingAttack.range; distance += 1) {
         const x = state.player.x + vector.dx * distance;
@@ -198,6 +199,7 @@ function move(state, directionName, announce, render) {
         announce(`${m(state, "blocked")} ${direction(state, directionName)}.${reason}`); return;
     }
     state.player.x = newX; state.player.y = newY;
+    playPlaceholderFootstep();
     const reactions = runEnemyTurn(state);
     announce([`${newX},${newY}`, ...reactions].join(" "));
     render();
@@ -287,6 +289,7 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
     enemy.stats.hpAtual -= damage;
     if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
+    else if (!enemy.isBoss) playPlaceholderEnemyHit();
     if (enemy.stats.hpAtual <= 0) {
         removeEnemy(state.level, enemy);
         const lootText = collectEnemyLoot(state, enemy);
