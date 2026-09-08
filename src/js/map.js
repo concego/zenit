@@ -28,7 +28,10 @@ const SEWER_WALLS = Object.freeze([
     { x: 7, y: 4 }, { x: 8, y: 4 },
     { x: 1, y: 7 }, { x: 2, y: 7 },
     { x: 7, y: 7 }, { x: 8, y: 7 },
-    { x: 3, y: 9 }, { x: 4, y: 9 }, { x: 5, y: 9 }, { x: 6, y: 9 }
+    { x: 3, y: 9 }, { x: 4, y: 9 }, { x: 5, y: 9 }, { x: 6, y: 9 },
+    { x: 9, y: 9 },
+    { x: 0, y: 10 }, { x: 1, y: 10 }, { x: 2, y: 10 }, { x: 3, y: 10 },
+    { x: 4, y: 10 }, { x: 5, y: 10 }, { x: 6, y: 10 }, { x: 7, y: 10 }
 ]);
 
 const SEWER_WATER = Object.freeze([

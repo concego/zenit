@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=magic-direct1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=map-scan-magic1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -54,7 +54,7 @@ function equipmentDetail(state, player, option) {
     return `${t(state, option)}: ${name}.`;
 }
 
-function skillTranslationKey(skill) { return skill.nameKey?.split(".").pop() || skill.id.replace(/_([a-z])/g, (_, letter) => letter.toUpperCase()); }
+function skillTranslationKey(skill) { return skill.id || skill.nameKey?.split(".").pop() || "unknown"; }
 function skillLabel(state, skill) { return getText(state.language, `skills.names.${skillTranslationKey(skill)}`); }
 
 function skillDescription(state, skill) { return getText(state.language, `skills.descriptions.${skillTranslationKey(skill)}`); }
@@ -71,7 +71,8 @@ function skillDetail(state, skillId) {
     const result = canLearnSkill(state.player.skills, skill.id, state.player.attributes);
     const shortcut = getSkillAssignedSlot(state.player.skills, skill.id);
     const status = skill.level >= skill.maxLevel ? m(state, "skillMax") : result.allowed ? m(state, "skillReady") : result.reason === "skill_points" ? m(state, "skillNeedPoints") : result.reason === "requirements" ? m(state, "skillNeedRequirements") : "";
-    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillUseCost")}: ${skillResourceLabel(state, skill.resource)} ${skill.resourceCost + skill.level - 1}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
+    const rangeDetail = getSkillEffect(skill, "range") ? ` ${m(state, "skillRange")}: ${getSkillEffect(skill, "range")}.` : "";
+    return `${skillLabel(state, skill)}. ${m(state, "skillDescription")}: ${skillDescription(state, skill)}${rangeDetail} ${m(state, "skillLevel")}: ${skill.level}/${skill.maxLevel}. ${m(state, "skillCost")}: ${nextCost}. ${m(state, "skillUseCost")}: ${skillResourceLabel(state, skill.resource)} ${skill.resourceCost + skill.level - 1}. ${m(state, "skillPoints")}: ${state.player.skills.skillPoints}. ${m(state, "skillRequirements")}: ${requirementParts.join(", ") || m(state, "skillNone")}. ${m(state, "skillShortcut")}: ${shortcut || m(state, "skillNone")}. ${status}`;
 }
 
 function activateSkillEffects(state, skill, { prepareAttack = true } = {}) {
@@ -202,6 +203,16 @@ function move(state, directionName, announce, render) {
     render();
 }
 
+function relativeScanDistance(state, x, y) {
+    const horizontal = x < state.player.x ? `l${state.player.x - x}` : x > state.player.x ? `r${x - state.player.x}` : "";
+    const vertical = y < state.player.y ? `n${state.player.y - y}` : y > state.player.y ? `s${y - state.player.y}` : "";
+    return [horizontal, vertical].filter(Boolean).join(",");
+}
+
+function scanPoint(state, label, x, y) {
+    return `${label} ${relativeScanDistance(state, x, y)}`;
+}
+
 function scan(state, announce) {
     const vector = getDirectionVector(state.player.dir); const found = []; const checked = new Set();
     for (let distance = 1; distance <= 5; distance += 1) {
@@ -212,12 +223,12 @@ function scan(state, announce) {
             const y = vertical ? state.player.y + vector.dy * distance : state.player.y + offset;
             const key = `${x},${y}`;
             if (!isInside(state.level, x, y) || checked.has(key)) continue; checked.add(key);
-            if (isWall(state.level, x, y)) found.push(`${m(state, "scanWall")} X ${x}, Y ${y}`);
-            else if (isWater(state.level, x, y)) found.push(`${m(state, "scanWater")} X ${x}, Y ${y}`);
-            else if (getBoxAt(state.level, x, y)) found.push(`${m(state, "scanBox")} X ${x}, Y ${y}`);
-            else if (getEnemyAt(state.level, x, y)) { const enemy = getEnemyAt(state.level, x, y); found.push(`${enemy.isBoss ? m(state, "scanBoss") : m(state, "scanEnemy")} X ${x}, Y ${y}`); }
-            else if (getPropAt(state.level, x, y)) found.push(`${m(state, "scanObject")} X ${x}, Y ${y}`);
-            else if (isDoor(state.level, x, y)) found.push(`${m(state, "scanDoor")} X ${x}, Y ${y}`);
+            if (isWall(state.level, x, y)) found.push(scanPoint(state, m(state, "scanWall"), x, y));
+            else if (isWater(state.level, x, y)) found.push(scanPoint(state, m(state, "scanWater"), x, y));
+            else if (getBoxAt(state.level, x, y)) found.push(scanPoint(state, m(state, "scanBox"), x, y));
+            else if (getEnemyAt(state.level, x, y)) { const enemy = getEnemyAt(state.level, x, y); found.push(scanPoint(state, enemyLabel(state, enemy), x, y)); }
+            else if (getPropAt(state.level, x, y)) found.push(scanPoint(state, m(state, "scanObject"), x, y));
+            else if (isDoor(state.level, x, y)) found.push(scanPoint(state, m(state, "scanDoor"), x, y));
         }
     }
     announce(`${m(state, "scanDone")}: ${found.length ? found.join(", ") : m(state, "scanNone")}.`);
