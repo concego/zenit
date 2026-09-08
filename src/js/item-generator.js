@@ -95,6 +95,7 @@ export function generateEquipment({ tier, level = 1, rng, seed } = {}) {
     const template = choose(EQUIPMENT_TEMPLATES, random);
     const item = baseItem(template, ITEM_CATEGORIES.EQUIPMENT, quality, level, random);
     item.slot = template.slot;
+    item.material = template.material;
     item.armor = scaled(template.baseArmor, quality, level);
     item.attributeBonuses = { [template.baseAttribute]: Math.max(1, Math.round(quality.multiplier)) };
     return applyAffixes(item);

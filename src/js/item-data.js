@@ -24,14 +24,14 @@ export const CONSUMABLE_TEMPLATES = Object.freeze([
 ]);
 
 export const EQUIPMENT_TEMPLATES = Object.freeze([
-    Object.freeze({ id: "hood", nameKey: "items.equipment.hood", slot: "head", baseArmor: 2, baseAttribute: "mente" }),
-    Object.freeze({ id: "helmet", nameKey: "items.equipment.helmet", slot: "head", baseArmor: 4, baseAttribute: "potencia" }),
-    Object.freeze({ id: "amulet", nameKey: "items.equipment.amulet", slot: "neck", baseArmor: 1, baseAttribute: "mente" }),
-    Object.freeze({ id: "ring", nameKey: "items.equipment.ring", slot: "ring", baseArmor: 0, baseAttribute: "coordenacao" }),
-    Object.freeze({ id: "vest", nameKey: "items.equipment.vest", slot: "torso", baseArmor: 5, baseAttribute: "coordenacao" }),
-    Object.freeze({ id: "cuirass", nameKey: "items.equipment.cuirass", slot: "torso", baseArmor: 8, baseAttribute: "potencia" }),
-    Object.freeze({ id: "belt", nameKey: "items.equipment.belt", slot: "waist", baseArmor: 2, baseAttribute: "potencia" }),
-    Object.freeze({ id: "boots", nameKey: "items.equipment.boots", slot: "feet", baseArmor: 3, baseAttribute: "coordenacao" })
+    Object.freeze({ id: "hood", nameKey: "items.equipment.hood", slot: "head", material: "leather", baseArmor: 2, baseAttribute: "mente" }),
+    Object.freeze({ id: "helmet", nameKey: "items.equipment.helmet", slot: "head", material: "metal", baseArmor: 4, baseAttribute: "potencia" }),
+    Object.freeze({ id: "amulet", nameKey: "items.equipment.amulet", slot: "neck", material: "other", baseArmor: 1, baseAttribute: "mente" }),
+    Object.freeze({ id: "ring", nameKey: "items.equipment.ring", slot: "ring", material: "other", baseArmor: 0, baseAttribute: "coordenacao" }),
+    Object.freeze({ id: "vest", nameKey: "items.equipment.vest", slot: "torso", material: "leather", baseArmor: 5, baseAttribute: "coordenacao" }),
+    Object.freeze({ id: "cuirass", nameKey: "items.equipment.cuirass", slot: "torso", material: "metal", baseArmor: 8, baseAttribute: "potencia" }),
+    Object.freeze({ id: "belt", nameKey: "items.equipment.belt", slot: "waist", material: "leather", baseArmor: 2, baseAttribute: "potencia" }),
+    Object.freeze({ id: "boots", nameKey: "items.equipment.boots", slot: "feet", material: "leather", baseArmor: 3, baseAttribute: "coordenacao" })
 ]);
 
 export const WEAPON_TEMPLATES = Object.freeze([

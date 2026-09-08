@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playCoin, playMenuCancel, playMenuConfirm, playMenuScroll } from "./ui-audio.js?v=menu-files1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup } from "./ui-audio.js?v=menu-files1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -153,6 +153,12 @@ function scan(state, announce) {
 
 function enemyLabel(state, enemy) { return getText(state.language, enemy.nameKey || `enemies.species.${enemy.species}`); }
 
+function playLootItemSound(item) {
+    if (item.category === "consumable") playPotionPickup();
+    else if (item.category === "equipment" && item.material === "leather") playLeatherArmor();
+    else if (item.category === "equipment" && item.material === "metal") playMetalArmor();
+}
+
 function collectEnemyLoot(state, enemy) {
     const loot = state.level.enemyLoot?.find((entry) => entry.enemyId === enemy.instanceId);
     if (!loot) return "";
@@ -163,9 +169,10 @@ function collectEnemyLoot(state, enemy) {
     });
     (loot.items || []).forEach((item) => {
         state.player.inventory.push(item);
+        playLootItemSound(item);
         found.push(`${m(state, "enemyItem")}: ${item.templateId}`);
     });
-    if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
+    if (loot.gold) { state.player.stats.ouro += loot.gold; playCoinDrop(); playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "enemyLoot")}: ${found.join(", ")}.` : "";
 }
 
@@ -177,7 +184,8 @@ function collectContainerLoot(state, container) {
     const loot = container.loot;
     if (!loot) return "";
     const found = [];
-    (loot.items || []).forEach((item) => { state.player.inventory.push(item); found.push(`${m(state, "enemyItem")}: ${item.templateId}`); });
+    if (loot.source === "chest") playChest();
+    (loot.items || []).forEach((item) => { state.player.inventory.push(item); playLootItemSound(item); found.push(`${m(state, "enemyItem")}: ${item.templateId}`); });
     if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "containerLoot")}: ${found.join(", ")}.` : "";
 }
