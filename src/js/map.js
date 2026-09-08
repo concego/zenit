@@ -1,6 +1,7 @@
 // Mapa e elementos do mundo.
 import { createRng } from "./item-generator.js";
 import { generateBossEnemy, generateEnemy, generateEnemyLoot } from "./enemy-generator.js";
+import { generateContainerLoot } from "./loot-generator.js";
 
 export const GRID_WIDTH = 10;
 export const GRID_HEIGHT = 11;
@@ -82,6 +83,13 @@ function createSewerEnemies() {
 export function createLevel(number = 1) {
     const levelNumber = Math.max(1, Number(number) || 1);
     const isSewer = levelNumber === 1;
+    const baseBoxes = copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber);
+    const boxLootRng = createRng(2000 + levelNumber);
+    const boxes = baseBoxes.map((box) => {
+        const loot = generateContainerLoot({ source: "box", biome: isSewer ? "sewers" : "ruins", tier: "common", level: levelNumber, rng: boxLootRng });
+        loot.gold += box.ouro;
+        return { ...box, tier: "common", loot };
+    });
     const enemyData = isSewer ? createSewerEnemies() : { enemies: [], enemyLoot: [] };
     return {
         number: levelNumber,
@@ -95,7 +103,7 @@ export function createLevel(number = 1) {
         water: copyItems(isSewer ? SEWER_WATER : []),
         props: copyItems(isSewer ? SEWER_PROPS : []),
         door: { x: 9, y: 10 },
-        boxes: copyItems(isSewer ? SEWER_BOXES : BASE_BOXES, levelNumber).map((box) => ({ ...box, tier: "common" })),
+        boxes,
         enemies: enemyData.enemies,
         enemyLoot: enemyData.enemyLoot
     };

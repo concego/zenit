@@ -1,12 +1,14 @@
 // Geração procedural de mapas por bioma, tier, dificuldade, recursos e loot.
 import { generateItem, createRng } from "./item-generator.js";
 import { generateBossEnemy, generateEnemy, generateEnemyLoot } from "./enemy-generator.js";
-import { ITEM_CATEGORIES, ITEM_TIERS } from "./item-data.js";
+import { generateContainerLoot, rollLootTier } from "./loot-generator.js";
+import { ITEM_CATEGORIES } from "./item-data.js";
 import { MAP_BIOMES, MAP_BIOME_LIST, MAP_TIERS, MAP_TIER_LIST } from "./map-data.js";
+
+export { rollLootTier } from "./loot-generator.js";
 
 const WIDTH = 10;
 const HEIGHT = 11;
-const TIER_LIST = Object.freeze(Object.values(ITEM_TIERS));
 const CATEGORY_LIST = Object.freeze(Object.values(ITEM_CATEGORIES));
 
 function resolveBiome(biome) {
@@ -48,32 +50,6 @@ function buildPath(width, height, rng) {
         path.add(key(x, y));
     }
     return path;
-}
-
-export function rollLootTier(mapTier = MAP_TIERS.COMMON, rng = Math.random, { boss = false, firstRun = false } = {}) {
-    const selectedMapTier = resolveMapTier(mapTier) || MAP_TIERS.COMMON;
-    const normal = TIER_LIST.filter((candidate) => candidate.rank <= selectedMapTier.rank);
-    const higher = TIER_LIST.filter((candidate) => candidate.rank > selectedMapTier.rank);
-    const aboveTierChance = boss && firstRun ? 0.25 : selectedMapTier.aboveTierBaseChance;
-    let selected;
-
-    // Primeiro decide se haverá exceção. Assim a chance configurada é real,
-    // em vez de ser apenas um peso misturado com os tiers normais.
-    if (higher.length && rng() < aboveTierChance) {
-        const weights = higher.map((candidate) => 0.25 ** (candidate.rank - selectedMapTier.rank - 1));
-        const total = weights.reduce((sum, weight) => sum + weight, 0);
-        let roll = rng() * total;
-        const index = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
-        selected = higher[Math.max(0, index)];
-    } else {
-        // Dentro da faixa normal, o tier do mapa é favorecido sobre os anteriores.
-        const weights = normal.map((candidate) => candidate.rank === selectedMapTier.rank ? 6 : 3 / (selectedMapTier.rank - candidate.rank + 1));
-        const total = weights.reduce((sum, weight) => sum + weight, 0);
-        let roll = rng() * total;
-        const index = weights.findIndex((weight) => { roll -= weight; return roll < 0; });
-        selected = normal[Math.max(0, index)];
-    }
-    return { tier: selected, exception: selected.rank > selectedMapTier.rank, difference: selected.rank - selectedMapTier.rank };
 }
 
 function createTerrain(biome, width, height, path, rng) {
@@ -144,11 +120,11 @@ function addResources(map, biome, tier, rng) {
 
 function addLoot(map, biome, tier, rng, firstRun) {
     const containers = map.interactables.filter((item) => ["crate", "barrel", "chest", "altar"].includes(item.type));
-    return containers.map((container) => {
-        const roll = rollLootTier(tier, rng, { firstRun });
-        const category = weightedChoice(biome.lootBias, rng);
-        return { x: container.x, y: container.y, source: container.type, exception: roll.exception, tierDifference: roll.difference, item: generateItem({ category, tier: roll.tier.id, level: tier.rank, rng }) };
-    });
+    return containers.map((container) => ({
+        x: container.x,
+        y: container.y,
+        ...generateContainerLoot({ source: container.type, biome: biome.id, tier: tier.id, level: tier.rank, rng, firstRun })
+    }));
 }
 
 export function generateBossLoot({ mapTier = "common", firstRun = false, level = 1, seed } = {}) {

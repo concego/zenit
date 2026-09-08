@@ -173,6 +173,15 @@ function withEnemyReactions(state, text) {
     return [text, ...runEnemyTurn(state)].filter(Boolean).join(" ");
 }
 
+function collectContainerLoot(state, container) {
+    const loot = container.loot;
+    if (!loot) return "";
+    const found = [];
+    (loot.items || []).forEach((item) => { state.player.inventory.push(item); found.push(`${m(state, "enemyItem")}: ${item.templateId}`); });
+    if (loot.gold) { state.player.stats.ouro += loot.gold; found.push(`${loot.gold} ${t(state, "gold")}`); }
+    return found.length ? `${m(state, "containerLoot")}: ${found.join(", ")}.` : "";
+}
+
 function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     const kind = state.player.instanciaAtiva === "MELEE" ? "melee" : "ranged";
     const attribute = kind === "melee" ? state.player.attributes.potencia : state.player.attributes.coordenacao;
@@ -207,7 +216,7 @@ function attack(state, announce, render) {
         const enemy = getEnemyAt(state.level, x, y);
         if (enemy) { attackEnemy(state, enemy, weapon, pendingAttack, announce, render); return; }
         const box = getBoxAt(state.level, x, y);
-        if (box) { state.player.stats.ouro += box.ouro; removeBox(state.level, box); state.player.skillState.pendingAttack = null; announce(withEnemyReactions(state, `${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")} ${box.ouro} ${t(state, "gold")}. ${m(state, "total")}: ${state.player.stats.ouro}.${bonusText}`)); render(); return; }
+        if (box) { const lootText = collectContainerLoot(state, box); removeBox(state.level, box); state.player.skillState.pendingAttack = null; announce(withEnemyReactions(state, `${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")}. ${lootText} ${m(state, "total")}: ${state.player.stats.ouro}.${bonusText}`)); render(); return; }
     }
     state.player.skillState.pendingAttack = null;
     announce(withEnemyReactions(state, `${m(state, "attackDone")} ${itemName(state, weapon.nome)}.${bonusText} ${m(state, "noTarget")}`));
