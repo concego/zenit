@@ -10,7 +10,11 @@ const SOUND_IDS = Object.freeze({
     metalArmor: "inventoryMetalArmorSound",
     potionUse: "inventoryPotionUseSound",
     potionPickup: "inventoryPotionPickupSound",
-    chest: "worldChestSound"
+    chest: "worldChestSound",
+    slimeBossStep: "slimeBossStepSound",
+    slimeBossAttack: "slimeBossAttackSound",
+    slimeBossHit: "slimeBossHitSound",
+    slimeHit: "slimeHitSound"
 });
 
 function playSound(kind) {
@@ -32,3 +36,7 @@ export function playMetalArmor() { playSound("metalArmor"); }
 export function playPotionUse() { playSound("potionUse"); }
 export function playPotionPickup() { playSound("potionPickup"); }
 export function playChest() { playSound("chest"); }
+export function playSlimeBossStep() { playSound("slimeBossStep"); }
+export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
+export function playSlimeBossHit() { playSound("slimeBossHit"); }
+export function playSlimeHit() { playSound("slimeHit"); }

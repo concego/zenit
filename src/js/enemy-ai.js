@@ -2,6 +2,7 @@
 import { getText } from "./i18n.js";
 import { isBlocked, isInside } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
+import { playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep } from "./ui-audio.js?v=menu-files1";
 
 const RULES = Object.freeze({
     rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
@@ -30,6 +31,7 @@ function moveEnemy(state, enemy) {
         if (isInside(state.level, candidate.x, candidate.y) && !isBlocked(state.level, candidate.x, candidate.y) && !(candidate.x === state.player.x && candidate.y === state.player.y)) {
             enemy.x = candidate.x;
             enemy.y = candidate.y;
+            if (enemy.isBoss && enemy.species === "slime") playSlimeBossStep();
             return true;
         }
     }
@@ -37,10 +39,12 @@ function moveEnemy(state, enemy) {
 }
 
 function enemyAttack(state, enemy) {
+    if (enemy.isBoss && enemy.species === "slime") playSlimeBossAttack();
     const hitChance = getHitChance({ attackerCoordination: enemy.stats.coordination || 10, defenderCoordination: state.player.attributes.coordenacao, weaponAccuracy: 0 });
     const effectiveHit = hitChance * (1 - getDodgeChance({ coordination: state.player.attributes.coordenacao }));
     if (Math.random() > effectiveHit) return `${label(state, enemy)} ${message(state, "enemyMisses")}.`;
     const critical = Math.random() < getCriticalChance({ coordination: enemy.stats.coordination || 10 });
+    if (enemy.isBoss && enemy.species === "slime") playSlimeBossHit();
     const pressureMultiplier = enemy.isBoss ? 1.4 : 1.2;
     const damage = calculateDamage({ attackPower: Math.round(enemy.stats.damage * pressureMultiplier), targetDefense: playerDefense(state), critical });
     state.player.stats.hpAtual = Math.max(0, state.player.stats.hpAtual - damage);

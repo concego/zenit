@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup } from "./ui-audio.js?v=menu-files1";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playPotionPickup, playSlimeHit } from "./ui-audio.js?v=menu-files1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -202,6 +202,7 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     const critical = Math.random() < getCriticalChance({ coordination: state.player.attributes.coordenacao, criticalBonus: pendingAttack?.critical || 0 });
     const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
     enemy.stats.hpAtual -= damage;
+    if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
     if (enemy.stats.hpAtual <= 0) {
         removeEnemy(state.level, enemy);
         const lootText = collectEnemyLoot(state, enemy);
