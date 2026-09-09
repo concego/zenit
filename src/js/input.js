@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx2";
+import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playSlimeBossDeath, playSlimeHit, playStandardHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx3";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -122,7 +122,8 @@ function castRangedMagic(state, skill, announce, render) {
         critical: getSkillEffect(skill, "critical") || 0
     };
     state.player.skillState.pendingAttack = null;
-    if (skill.id !== "arcane_spark") playPlaceholderMagicCast();
+    if (skill.id === "elemental_bolt") playFireMagic();
+    else if (skill.id !== "arcane_spark") playPlaceholderMagicCast();
     const vector = getDirectionVector(state.player.dir);
     for (let distance = 1; distance <= pendingAttack.range; distance += 1) {
         const x = state.player.x + vector.dx * distance;
@@ -153,6 +154,7 @@ function castRangedMagic(state, skill, announce, render) {
         enemy.stats.hpAtual -= damage;
         if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
         if (enemy.stats.hpAtual <= 0) {
+            if (enemy.isBoss && enemy.species === "slime") playSlimeBossDeath();
             removeEnemy(state.level, enemy);
             const lootText = collectEnemyLoot(state, enemy);
             announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "enemyDefeated")} ${enemyLabel(state, enemy)}. ${m(state, "damageDealt")}: ${damage}. ${lootText}`));
@@ -258,6 +260,7 @@ function collectEnemyLoot(state, enemy) {
     const found = [];
     (loot.materials || []).forEach((material) => {
         state.player.craftingMaterials[material.materialId] = (state.player.craftingMaterials[material.materialId] || 0) + material.quantity;
+        if (material.materialId === "wood") playWoodMaterialDrop();
         found.push(`${material.quantity} ${getText(state.language, material.nameKey)}`);
     });
     (loot.items || []).forEach((item) => {
@@ -303,6 +306,7 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
     else playStandardHit();
     if (enemy.stats.hpAtual <= 0) {
+        if (enemy.isBoss && enemy.species === "slime") playSlimeBossDeath();
         removeEnemy(state.level, enemy);
         const lootText = collectEnemyLoot(state, enemy);
         announce(withEnemyReactions(state, `${enemy.isBoss ? m(state, "bossDefeated") : m(state, "enemyDefeated")} ${enemyLabel(state, enemy)}. ${m(state, "damageDealt")}: ${damage}. ${lootText}`));

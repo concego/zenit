@@ -2,7 +2,7 @@
 import { getText } from "./i18n.js";
 import { isBlocked, isInside, isNearWater, isStoneSurface, isWoodSurface } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
-import { playHumanoidFootstep, playHumanoidWoodFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playStoneFootstep, playWetFootstep, playWoodFootstep, playZombieFootstep } from "./ui-audio.js?v=footsteps2";
+import { playHumanoidFootstep, playHumanoidWoodFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeAttack, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playSlimeStep, playStoneFootstep, playWetFootstep, playWoodFootstep, playZombieFootstep } from "./ui-audio.js?v=menu-sfx3";
 
 const RULES = Object.freeze({
     rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
@@ -32,6 +32,7 @@ function moveEnemy(state, enemy) {
             enemy.x = candidate.x;
             enemy.y = candidate.y;
             if (enemy.isBoss && enemy.species === "slime") playSlimeBossStep();
+            else if (enemy.species === "slime") playSlimeStep();
             else if (isWoodSurface(state.level, enemy.x, enemy.y)) {
                 if (enemy.type === "humanoid") playHumanoidWoodFootstep();
                 else playWoodFootstep();
@@ -48,6 +49,7 @@ function moveEnemy(state, enemy) {
 
 function enemyAttack(state, enemy) {
     if (enemy.isBoss && enemy.species === "slime") playSlimeBossAttack();
+    else if (enemy.species === "slime") playSlimeAttack();
     else playPlaceholderEnemyAttack();
     const hitChance = getHitChance({ attackerCoordination: enemy.stats.coordination || 10, defenderCoordination: state.player.attributes.coordenacao, weaponAccuracy: 0 });
     const effectiveHit = hitChance * (1 - getDodgeChance({ coordination: state.player.attributes.coordenacao }));

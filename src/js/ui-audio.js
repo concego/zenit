@@ -20,20 +20,29 @@ const SOUND_IDS = Object.freeze({
     wetFootstep: ["wetFootstepSound", "wetFootstep2Sound"],
     woodFootstep: ["woodFootstepSound", "woodFootstep2Sound"],
     humanoidWoodFootstep: ["humanoidWoodFootstepSound", "humanoidWoodFootstep2Sound"],
+    slimeStep: "slimeStepSound",
+    slimeAttack: "slimeAttackSound",
     slimeBossStep: "slimeBossStepSound",
     slimeBossAttack: "slimeBossAttackSound",
     slimeBossHit: "slimeBossHitSound",
+    slimeBossDeath: "slimeBossDeathSound",
     slimeHit: "slimeHitSound",
     standardHit: "standardHitSound",
     rangedMiss: "rangedMissSound",
-    mysticSpell: "mysticSpellSound", 
+    mysticSpell: "mysticSpellSound",
+    fireMagic: "fireMagicSound",
+    electricFear: "electricFearSound",
     lockOpen: "lockOpenSound",
+    lockpickSuccess: "lockpickSuccessSound",
     lockedMetal: "lockedMetalSound",
     drawerOpen: "drawerOpenSound",
     leverActivate: "leverActivateSound",
     shieldEquip: "shieldEquipSound",
     shieldBlock: "shieldBlockSound",
     poisonAttack: "poisonAttackSound",
+    leatherCrafting: "leatherCraftingSound",
+    consumableCrafting: "consumableCraftingSound",
+    woodMaterialDrop: "woodMaterialDropSound",
     metalCrafting: "metalCraftingSound",
     playerFootstep: ["playerFootstepSound", "playerFootstep2Sound"],
     humanoidFootstep: "humanoidFootstepSound",
@@ -71,6 +80,7 @@ export function playChest() { playSound("chest"); }
 export function playWoodDoorOpen() { playSound("woodDoorOpen"); }
 export function playWoodDoorClose() { playSound("woodDoorClose"); }
 export function playLockedMetal() { playSound("lockedMetal"); }
+export function playLockpickSuccess() { playSound("lockpickSuccess"); }
 export function playDrawerOpen() { playSound("drawerOpen"); }
 export function playLeverActivate() { playSound("leverActivate"); }
 export function playShieldEquip() { playSound("shieldEquip"); }
@@ -78,19 +88,27 @@ export function playShieldBlock() { playSound("shieldBlock"); }
 export function playPoisonAttack() { playSound("poisonAttack"); }
 export function playAirBuff() { playSound("airBuff"); }
 export function playAirOffensive() { playSound("airOffensive"); }
+export function playFireMagic() { playSound("fireMagic"); }
+export function playElectricFear() { playSound("electricFear"); }
 export function playZombieFootstep() { playSound("zombieFootstep"); }
 export function playWetFootstep() { playSound("wetFootstep"); }
 export function playWoodFootstep() { playSound("woodFootstep"); }
 export function playHumanoidWoodFootstep() { playSound("humanoidWoodFootstep"); }
+export function playSlimeStep() { playSound("slimeStep"); }
+export function playSlimeAttack() { playSound("slimeAttack"); }
 export function playSlimeBossStep() { playSound("slimeBossStep"); }
 export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
+export function playSlimeBossDeath() { playSound("slimeBossDeath"); }
 export function playSlimeHit() { playSound("slimeHit"); }
 export function playStandardHit() { playSound("standardHit"); }
 export function playRangedMiss() { playSound("rangedMiss"); }
 export function playMysticSpell() { playSound("mysticSpell"); }
 export function playLockOpen() { playSound("lockOpen"); }
 export function playMetalCrafting() { playSound("metalCrafting"); }
+export function playLeatherCrafting() { playSound("leatherCrafting"); }
+export function playConsumableCrafting() { playSound("consumableCrafting"); }
+export function playWoodMaterialDrop() { playSound("woodMaterialDrop"); }
 export function playPlayerFootstep() { playSound("playerFootstep"); }
 export function playHumanoidFootstep() { playSound("humanoidFootstep"); }
 export function playStoneFootstep() { playSound("stoneFootstep"); }
