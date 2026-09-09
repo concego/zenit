@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=water-audio1";
+import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx2";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -246,6 +246,7 @@ function enemyLabel(state, enemy) { return getText(state.language, enemy.nameKey
 
 function playLootItemSound(item) {
     if (item.category === "consumable") playPotionPickup();
+    else if (item.category === "weapon" && item.kind === "ranged") playBowDrop();
     else if (item.category === "weapon" && item.kind === "melee") playWeaponUnsheathe();
     else if (item.category === "equipment" && item.material === "leather") playLeatherArmor();
     else if (item.category === "equipment" && item.material === "metal") playMetalArmor();

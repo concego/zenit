@@ -6,6 +6,7 @@ const SOUND_IDS = Object.freeze({
     cancel: "menuCancelSound",
     coin: "inventoryCoinSound",
     coinDrop: "inventoryCoinDropSound",
+    bowDrop: "bowDropSound",
     leatherArmor: "inventoryLeatherArmorSound",
     metalArmor: "inventoryMetalArmorSound",
     potionUse: "inventoryPotionUseSound",
@@ -27,6 +28,12 @@ const SOUND_IDS = Object.freeze({
     rangedMiss: "rangedMissSound",
     mysticSpell: "mysticSpellSound", 
     lockOpen: "lockOpenSound",
+    lockedMetal: "lockedMetalSound",
+    drawerOpen: "drawerOpenSound",
+    leverActivate: "leverActivateSound",
+    shieldEquip: "shieldEquipSound",
+    shieldBlock: "shieldBlockSound",
+    poisonAttack: "poisonAttackSound",
     metalCrafting: "metalCraftingSound",
     playerFootstep: ["playerFootstepSound", "playerFootstep2Sound"],
     humanoidFootstep: "humanoidFootstepSound",
@@ -55,6 +62,7 @@ export function playMenuConfirm() { playSound("confirm"); }
 export function playMenuCancel() { playSound("cancel"); }
 export function playCoin() { playSound("coin"); }
 export function playCoinDrop() { playSound("coinDrop"); }
+export function playBowDrop() { playSound("bowDrop"); }
 export function playLeatherArmor() { playSound("leatherArmor"); }
 export function playMetalArmor() { playSound("metalArmor"); }
 export function playPotionUse() { playSound("potionUse"); }
@@ -62,6 +70,12 @@ export function playPotionPickup() { playSound("potionPickup"); }
 export function playChest() { playSound("chest"); }
 export function playWoodDoorOpen() { playSound("woodDoorOpen"); }
 export function playWoodDoorClose() { playSound("woodDoorClose"); }
+export function playLockedMetal() { playSound("lockedMetal"); }
+export function playDrawerOpen() { playSound("drawerOpen"); }
+export function playLeverActivate() { playSound("leverActivate"); }
+export function playShieldEquip() { playSound("shieldEquip"); }
+export function playShieldBlock() { playSound("shieldBlock"); }
+export function playPoisonAttack() { playSound("poisonAttack"); }
 export function playAirBuff() { playSound("airBuff"); }
 export function playAirOffensive() { playSound("airOffensive"); }
 export function playZombieFootstep() { playSound("zombieFootstep"); }
