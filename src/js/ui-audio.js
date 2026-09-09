@@ -25,8 +25,13 @@ const SOUND_IDS = Object.freeze({
     slimeBossStep: "slimeBossStepSound",
     slimeBossAttack: "slimeBossAttackSound",
     slimeBossHit: "slimeBossHitSound",
+    largeSlimeHit: "largeSlimeHitSound",
     slimeBossDeath: "slimeBossDeathSound",
     slimeHit: "slimeHitSound",
+    ratDeath: "ratDeathSound",
+    spiderHit: "spiderHitSound",
+    spiderDeath: "spiderDeathSound",
+    largeSlimePlayerHit: "largeSlimePlayerHitSound",
     standardHit: "standardHitSound",
     rangedMiss: "rangedMissSound",
     mysticSpell: "mysticSpellSound",
@@ -99,8 +104,13 @@ export function playSlimeAttack() { playSound("slimeAttack"); }
 export function playSlimeBossStep() { playSound("slimeBossStep"); }
 export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
+export function playLargeSlimeHit() { playSound("largeSlimeHit"); }
 export function playSlimeBossDeath() { playSound("slimeBossDeath"); }
 export function playSlimeHit() { playSound("slimeHit"); }
+export function playRatDeath() { playSound("ratDeath"); }
+export function playSpiderHit() { playSound("spiderHit"); }
+export function playSpiderDeath() { playSound("spiderDeath"); }
+export function playLargeSlimePlayerHit() { playSound("largeSlimePlayerHit"); }
 export function playStandardHit() { playSound("standardHit"); }
 export function playRangedMiss() { playSound("rangedMiss"); }
 export function playMysticSpell() { playSound("mysticSpell"); }

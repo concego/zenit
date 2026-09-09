@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playSlimeBossDeath, playSlimeHit, playStandardHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx3";
+import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playRatDeath, playSlimeBossDeath, playSlimeHit, playSpiderDeath, playSpiderHit, playStandardHit, playLargeSlimePlayerHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx4";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -152,9 +152,13 @@ function castRangedMagic(state, skill, announce, render) {
         const attackPower = getAttackPower({ attribute: state.player.attributes.mente, kind: "magic", tier: "common", flatBonus: pendingAttack.damage });
         const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
         enemy.stats.hpAtual -= damage;
-        if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
+        if (enemy.isBoss && enemy.species === "slime") playLargeSlimePlayerHit();
+        else if (enemy.species === "slime") playSlimeHit();
+        else if (enemy.species === "spider") playSpiderHit();
         if (enemy.stats.hpAtual <= 0) {
             if (enemy.isBoss && enemy.species === "slime") playSlimeBossDeath();
+            else if (enemy.species === "rat") playRatDeath();
+            else if (enemy.species === "spider") playSpiderDeath();
             removeEnemy(state.level, enemy);
             const lootText = collectEnemyLoot(state, enemy);
             announce(withEnemyReactions(state, `${skillLabel(state, skill)}: ${m(state, "enemyDefeated")} ${enemyLabel(state, enemy)}. ${m(state, "damageDealt")}: ${damage}. ${lootText}`));
@@ -303,10 +307,14 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
     if (pendingAttack?.poison) playPoisonAttack();
     enemy.stats.hpAtual -= damage;
-    if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
+    if (enemy.isBoss && enemy.species === "slime") playLargeSlimePlayerHit();
+    else if (enemy.species === "slime") playSlimeHit();
+    else if (enemy.species === "spider") playSpiderHit();
     else playStandardHit();
     if (enemy.stats.hpAtual <= 0) {
         if (enemy.isBoss && enemy.species === "slime") playSlimeBossDeath();
+        else if (enemy.species === "rat") playRatDeath();
+        else if (enemy.species === "spider") playSpiderDeath();
         removeEnemy(state.level, enemy);
         const lootText = collectEnemyLoot(state, enemy);
         announce(withEnemyReactions(state, `${enemy.isBoss ? m(state, "bossDefeated") : m(state, "enemyDefeated")} ${enemyLabel(state, enemy)}. ${m(state, "damageDealt")}: ${damage}. ${lootText}`));

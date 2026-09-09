@@ -2,7 +2,7 @@
 import { getText } from "./i18n.js";
 import { isBlocked, isInside, isNearWater, isStoneSurface, isWoodSurface } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
-import { playHumanoidFootstep, playHumanoidWoodFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeAttack, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playSlimeStep, playStoneFootstep, playWetFootstep, playWoodFootstep, playZombieFootstep } from "./ui-audio.js?v=menu-sfx3";
+import { playHumanoidFootstep, playHumanoidWoodFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeAttack, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playSlimeStep, playStoneFootstep, playWetFootstep, playWoodFootstep, playZombieFootstep } from "./ui-audio.js?v=menu-sfx4";
 
 const RULES = Object.freeze({
     rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
