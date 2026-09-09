@@ -2,7 +2,7 @@
 import { getText } from "./i18n.js";
 import { isBlocked, isInside, isStoneSurface } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
-import { playHumanoidFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playStoneFootstep, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep } from "./ui-audio.js?v=footsteps1";
+import { playHumanoidFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playStoneFootstep, playZombieFootstep } from "./ui-audio.js?v=sfx-latest1";
 
 const RULES = Object.freeze({
     rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
@@ -32,6 +32,7 @@ function moveEnemy(state, enemy) {
             enemy.x = candidate.x;
             enemy.y = candidate.y;
             if (enemy.isBoss && enemy.species === "slime") playSlimeBossStep();
+            else if (enemy.species === "zombie") playZombieFootstep();
             else if (isStoneSurface(state.level, enemy.x, enemy.y)) playStoneFootstep();
             else if (enemy.type === "humanoid") playHumanoidFootstep();
             else playPlaceholderEnemyMove();

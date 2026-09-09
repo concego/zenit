@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isStoneSurface, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=footsteps1";
+import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=sfx-latest1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -177,7 +177,10 @@ function useAssignedSkill(state, slot, announce, render) {
     const rangedMagic = isRangedMagicSkill(result.skill);
     const activation = activateSkillEffects(state, result.skill, { prepareAttack: !rangedMagic });
     if (!activation.allowed) { announce(`${m(state, "skillNoResource")}: ${activation.resource === "stamina" ? t(state, "stamina") : activation.resource === "mana" ? t(state, "mana") : t(state, "hp")}.`); return; }
-    if (result.skill.id === "arcane_spark") playMysticSpell();
+    if (result.skill.element === "air") {
+        if (rangedMagic) playAirOffensive();
+        else playAirBuff();
+    } else if (result.skill.id === "arcane_spark") playMysticSpell();
     if (rangedMagic) { castRangedMagic(state, result.skill, announce, render); return; }
     const details = activation.outcome.length ? ` ${activation.outcome.join(" ")}.` : "";
     announce(withEnemyReactions(state, `${skillLabel(state, result.skill)}: ${m(state, "skillUsed")}. ${skillDescription(state, result.skill)}${details}`));
@@ -323,7 +326,9 @@ function attack(state, announce, render) {
 function interact(state, announce, render) {
     const position = frontPosition(state);
     if (!isDoor(state.level, position.x, position.y)) { announce(m(state, "nothing")); return; }
+    playWoodDoorOpen();
     state.levelNumber += 1; state.level = createLevel(state.levelNumber); resetPlayerPosition(state.player); initializePlayerStats(state.player);
+    setTimeout(() => playWoodDoorClose(), 450);
     announce(`${m(state, "doorOpened")} ${state.levelNumber}.`); render();
 }
 
