@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=footsteps2";
+import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=water-audio1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -290,12 +290,16 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     const hitChance = getHitChance({ attackerCoordination: state.player.attributes.coordenacao, defenderCoordination: enemy.stats.coordination || 10, weaponAccuracy: kind === "melee" ? 0.02 : 0.05, accuracyBonus: pendingAttack?.accuracy || 0 });
     const effectiveHit = hitChance * (1 - getDodgeChance({ coordination: enemy.stats.coordination || 10 }));
     state.player.skillState.pendingAttack = null;
-    if (Math.random() > effectiveHit) { announce(withEnemyReactions(state, `${m(state, "attackMissed")} ${enemyLabel(state, enemy)}.`)); return; }
+    if (Math.random() > effectiveHit) {
+        if (kind === "ranged") playRangedMiss();
+        announce(withEnemyReactions(state, `${m(state, "attackMissed")} ${enemyLabel(state, enemy)}.`));
+        return;
+    }
     const critical = Math.random() < getCriticalChance({ coordination: state.player.attributes.coordenacao, criticalBonus: pendingAttack?.critical || 0 });
     const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
     enemy.stats.hpAtual -= damage;
     if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
-    else if (!enemy.isBoss) playPlaceholderEnemyHit();
+    else playStandardHit();
     if (enemy.stats.hpAtual <= 0) {
         removeEnemy(state.level, enemy);
         const lootText = collectEnemyLoot(state, enemy);

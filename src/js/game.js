@@ -1,6 +1,6 @@
 // Ponto de entrada e estado principal do Zenit.
 
-import { installInput } from "./input.js?v=menu-files1";
+import { installInput } from "./input.js?v=water-audio1";
 import { installFrontInput } from "./frontend-input.js?v=menu-files1";
 import { createLevel } from "./map.js";
 import { createPlayer } from "./player.js";
@@ -39,7 +39,8 @@ function startGame() {
         characterConfirm: document.getElementById("characterConfirm"),
         characterCancel: document.getElementById("characterCancel"),
         menuMusic: document.getElementById("menuMusic"),
-        levelMusic: document.getElementById("levelMusic")
+        levelMusic: document.getElementById("levelMusic"),
+        runningWater: document.getElementById("runningWaterSound")
     };
     if (Object.values(elements).some((element) => !element)) throw new Error("A interface principal do Zenit não foi encontrada.");
 
@@ -86,6 +87,16 @@ function startGame() {
         } else {
             elements.levelMusic.pause();
             elements.levelMusic.currentTime = 0;
+        }
+
+        const isSewerLevel = state.gameState === "NORMAL" && state.level?.biome === "sewers";
+        if (isSewerLevel) {
+            elements.runningWater.volume = 0.18;
+            const playback = elements.runningWater.play();
+            if (playback && typeof playback.catch === "function") playback.catch(() => {});
+        } else {
+            elements.runningWater.pause();
+            elements.runningWater.currentTime = 0;
         }
     };
 
