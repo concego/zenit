@@ -69,8 +69,8 @@ function startGame() {
     };
 
     const syncMenuMusic = () => {
-        const isMainMenu = state.gameState === FRONT_STATES.MAIN;
-        if (isMainMenu) {
+        const isMenuMusicScreen = state.gameState.startsWith("FRONT_");
+        if (isMenuMusicScreen) {
             elements.menuMusic.volume = 0.35;
             const playback = elements.menuMusic.play();
             if (playback && typeof playback.catch === "function") playback.catch(() => {});
