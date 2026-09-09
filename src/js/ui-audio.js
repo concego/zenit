@@ -16,7 +16,9 @@ const SOUND_IDS = Object.freeze({
     slimeBossHit: "slimeBossHitSound",
     slimeHit: "slimeHitSound",
     mysticSpell: "mysticSpellSound",
-    placeholderFootstep: "placeholderFootstepSound",
+    playerFootstep: ["playerFootstepSound", "playerFootstep2Sound"],
+    humanoidFootstep: "humanoidFootstepSound",
+    stoneFootstep: ["stoneFootstepSound", "stoneFootstep2Sound"],
     placeholderEnemyAttack: "placeholderEnemyAttackSound",
     placeholderEnemyMove: "placeholderEnemyMoveSound",
     placeholderEnemyHit: "placeholderEnemyHitSound",
@@ -51,7 +53,9 @@ export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
 export function playSlimeHit() { playSound("slimeHit"); }
 export function playMysticSpell() { playSound("mysticSpell"); }
-export function playPlaceholderFootstep() { playSound("placeholderFootstep"); }
+export function playPlayerFootstep() { playSound("playerFootstep"); }
+export function playHumanoidFootstep() { playSound("humanoidFootstep"); }
+export function playStoneFootstep() { playSound("stoneFootstep"); }
 export function playPlaceholderEnemyAttack() { playSound("placeholderEnemyAttack"); }
 export function playPlaceholderEnemyMove() { playSound("placeholderEnemyMove"); }
 export function playPlaceholderEnemyHit() { playSound("placeholderEnemyHit"); }

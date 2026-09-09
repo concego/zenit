@@ -1,8 +1,8 @@
 // Keyboard input and in-game menus.
-import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isWall, isWater, removeBox, removeEnemy } from "./map.js";
+import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isStoneSurface, isWall, isWater, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlaceholderFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=placeholder2";
+import { playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe } from "./ui-audio.js?v=footsteps1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -199,7 +199,8 @@ function move(state, directionName, announce, render) {
         announce(`${m(state, "blocked")} ${direction(state, directionName)}.${reason}`); return;
     }
     state.player.x = newX; state.player.y = newY;
-    playPlaceholderFootstep();
+    if (isStoneSurface(state.level, newX, newY)) playStoneFootstep();
+    else playPlayerFootstep();
     const reactions = runEnemyTurn(state);
     announce([`${newX},${newY}`, ...reactions].join(" "));
     render();

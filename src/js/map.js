@@ -96,6 +96,7 @@ export function createLevel(number = 1) {
     const enemyData = isSewer ? createSewerEnemies() : { enemies: [], enemyLoot: [] };
     return {
         number: levelNumber,
+        biome: isSewer ? "sewers" : "ruins",
         width: GRID_WIDTH,
         height: GRID_HEIGHT,
         tileSize: TILE_SIZE,
@@ -122,6 +123,12 @@ export function isWall(level, x, y) {
 
 export function isWater(level, x, y) {
     return level.water?.some((water) => water.x === x && water.y === y) || false;
+}
+
+export function isStoneSurface(level, x, y) {
+    if (level.stoneTiles?.some((tile) => tile.x === x && tile.y === y)) return true;
+    if (level.terrain?.[y]?.[x] === "stone") return true;
+    return level.biome === "mountains" || level.biome === "ruins";
 }
 
 export function getBoxAt(level, x, y) {
