@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx2";
+import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playStandardHit, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx2";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -298,6 +298,7 @@ function attackEnemy(state, enemy, weapon, pendingAttack, announce, render) {
     }
     const critical = Math.random() < getCriticalChance({ coordination: state.player.attributes.coordenacao, criticalBonus: pendingAttack?.critical || 0 });
     const damage = calculateDamage({ attackPower, targetDefense: enemy.stats.defense, critical });
+    if (pendingAttack?.poison) playPoisonAttack();
     enemy.stats.hpAtual -= damage;
     if (enemy.species === "slime" && !enemy.isBoss) playSlimeHit();
     else playStandardHit();
