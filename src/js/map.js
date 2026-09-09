@@ -131,6 +131,16 @@ export function isStoneSurface(level, x, y) {
     return level.biome === "mountains" || level.biome === "ruins";
 }
 
+export function isWoodSurface(level, x, y) {
+    if (level.woodTiles?.some((tile) => tile.x === x && tile.y === y)) return true;
+    if (level.terrain?.[y]?.[x] === "wood") return true;
+    return level.props?.some((prop) => prop.x === x && prop.y === y && ["wood", "bridge", "plank", "pier"].includes(prop.type)) || false;
+}
+
+export function isNearWater(level, x, y) {
+    return [[x, y], [x + 1, y], [x - 1, y], [x, y + 1], [x, y - 1]].some(([targetX, targetY]) => isWater(level, targetX, targetY));
+}
+
 export function getBoxAt(level, x, y) {
     return level.boxes.find((box) => box.x === x && box.y === y);
 }

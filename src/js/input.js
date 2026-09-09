@@ -1,8 +1,8 @@
 // Keyboard input and in-game menus.
-import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isStoneSurface, isWall, isWater, removeBox, removeEnemy } from "./map.js";
+import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=sfx-latest1";
+import { playAirBuff, playAirOffensive, playChest, playCoin, playCoinDrop, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderEnemyHit, playPlaceholderMagicCast, playPotionPickup, playSlimeHit, playWeaponUnsheathe, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=footsteps2";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -202,7 +202,9 @@ function move(state, directionName, announce, render) {
         announce(`${m(state, "blocked")} ${direction(state, directionName)}.${reason}`); return;
     }
     state.player.x = newX; state.player.y = newY;
-    if (isStoneSurface(state.level, newX, newY)) playStoneFootstep();
+    if (isWoodSurface(state.level, newX, newY)) playWoodFootstep();
+    else if (isNearWater(state.level, newX, newY)) playWetFootstep();
+    else if (isStoneSurface(state.level, newX, newY)) playStoneFootstep();
     else playPlayerFootstep();
     const reactions = runEnemyTurn(state);
     announce([`${newX},${newY}`, ...reactions].join(" "));

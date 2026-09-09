@@ -1,8 +1,8 @@
 // IA simples dos inimigos: reação local, sem planejamento ou pathfinding.
 import { getText } from "./i18n.js";
-import { isBlocked, isInside, isStoneSurface } from "./map.js";
+import { isBlocked, isInside, isNearWater, isStoneSurface, isWoodSurface } from "./map.js";
 import { calculateDamage, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
-import { playHumanoidFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playStoneFootstep, playZombieFootstep } from "./ui-audio.js?v=sfx-latest1";
+import { playHumanoidFootstep, playHumanoidWoodFootstep, playPlaceholderEnemyAttack, playPlaceholderEnemyHit, playPlaceholderEnemyMove, playSlimeBossAttack, playSlimeBossHit, playSlimeBossStep, playStoneFootstep, playWetFootstep, playWoodFootstep, playZombieFootstep } from "./ui-audio.js?v=footsteps2";
 
 const RULES = Object.freeze({
     rat: Object.freeze({ detection: 7, moveChance: 0.9 }),
@@ -32,6 +32,10 @@ function moveEnemy(state, enemy) {
             enemy.x = candidate.x;
             enemy.y = candidate.y;
             if (enemy.isBoss && enemy.species === "slime") playSlimeBossStep();
+            else if (isWoodSurface(state.level, enemy.x, enemy.y)) {
+                if (enemy.type === "humanoid") playHumanoidWoodFootstep();
+                else playWoodFootstep();
+            } else if (isNearWater(state.level, enemy.x, enemy.y)) playWetFootstep();
             else if (enemy.species === "zombie") playZombieFootstep();
             else if (isStoneSurface(state.level, enemy.x, enemy.y)) playStoneFootstep();
             else if (enemy.type === "humanoid") playHumanoidFootstep();

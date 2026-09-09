@@ -15,7 +15,10 @@ const SOUND_IDS = Object.freeze({
     woodDoorClose: "woodDoorCloseSound",
     airBuff: "airBuffSound",
     airOffensive: "airOffensiveSound",
-    zombieFootstep: "zombieFootstepSound",
+    zombieFootstep: ["zombieFootstepSound", "zombieFootstep2Sound"],
+    wetFootstep: ["wetFootstepSound", "wetFootstep2Sound"],
+    woodFootstep: ["woodFootstepSound", "woodFootstep2Sound"],
+    humanoidWoodFootstep: ["humanoidWoodFootstepSound", "humanoidWoodFootstep2Sound"],
     slimeBossStep: "slimeBossStepSound",
     slimeBossAttack: "slimeBossAttackSound",
     slimeBossHit: "slimeBossHitSound",
@@ -58,6 +61,9 @@ export function playWoodDoorClose() { playSound("woodDoorClose"); }
 export function playAirBuff() { playSound("airBuff"); }
 export function playAirOffensive() { playSound("airOffensive"); }
 export function playZombieFootstep() { playSound("zombieFootstep"); }
+export function playWetFootstep() { playSound("wetFootstep"); }
+export function playWoodFootstep() { playSound("woodFootstep"); }
+export function playHumanoidWoodFootstep() { playSound("humanoidWoodFootstep"); }
 export function playSlimeBossStep() { playSound("slimeBossStep"); }
 export function playSlimeBossAttack() { playSound("slimeBossAttack"); }
 export function playSlimeBossHit() { playSound("slimeBossHit"); }
