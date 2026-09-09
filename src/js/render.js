@@ -44,7 +44,7 @@ function renderProp(svgCanvas, prop, tileSize) {
     if (prop.type === "grate") {
         svgCanvas.appendChild(createSvgElement("circle", { cx: px + 20, cy: py + 20, r: 13, fill: "#111a25", stroke: "#8997a0", "stroke-width": 2, "aria-hidden": "true" }));
         for (let i = -8; i <= 8; i += 8) svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 12 + i} ${py + 11} L ${px + 12 + i} ${py + 29}`, stroke: "#b0b9b9", "stroke-width": 2, opacity: 0.7, "aria-hidden": "true" }));
-    } else if (prop.type === "lamp") {
+    } else if (prop.type === "lantern") {
         svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 20} ${py + 31} V ${py + 11} Q ${px + 20} ${py + 7} ${px + 25} ${py + 7}`, fill: "none", stroke: "#a88a61", "stroke-width": 3, "aria-hidden": "true" }));
         svgCanvas.appendChild(createSvgElement("circle", { cx: px + 28, cy: py + 9, r: 6, fill: "#f1c66e", stroke: "#fff0ac", "stroke-width": 1.5, filter: "url(#zenitGlow)", "aria-hidden": "true" }));
     } else if (prop.type === "barrel") {
@@ -108,10 +108,17 @@ export function renderGame({ svgCanvas, level, player, language = "pt-BR" }) {
     });
     (level.props || []).forEach((prop) => renderProp(svgCanvas, prop, tileSize));
     level.boxes.forEach((box) => {
-        const px = box.x * tileSize + 7;
-        const py = box.y * tileSize + 7;
-        svgCanvas.appendChild(createSvgElement("rect", { x: px, y: py, width: tileSize - 14, height: tileSize - 14, rx: 5, fill: "url(#zenitBox)", stroke: "#d9b37a", "stroke-width": 1.5, "aria-hidden": "true" }));
-        svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 5} ${py + 5} L ${px + 23} ${py + 23} M ${px + 23} ${py + 5} L ${px + 5} ${py + 23}`, stroke: "#f1d39d", opacity: 0.55, "aria-hidden": "true" }));
+        const px = box.x * tileSize;
+        const py = box.y * tileSize;
+        if (box.containerType === "barrel") {
+            svgCanvas.appendChild(createSvgElement("rect", { x: px + 10, y: py + 6, width: 20, height: 29, rx: 7, fill: "#704434", stroke: "#c89b62", "stroke-width": 1.5, "aria-hidden": "true" }));
+            svgCanvas.appendChild(createSvgElement("path", { d: `M ${px + 9} ${py + 13} H ${px + 31} M ${px + 9} ${py + 28} H ${px + 31}`, stroke: "#d3af70", "stroke-width": 2, "aria-hidden": "true" }));
+        } else {
+            const boxX = px + 7;
+            const boxY = py + 7;
+            svgCanvas.appendChild(createSvgElement("rect", { x: boxX, y: boxY, width: tileSize - 14, height: tileSize - 14, rx: 5, fill: "url(#zenitBox)", stroke: "#d9b37a", "stroke-width": 1.5, "aria-hidden": "true" }));
+            svgCanvas.appendChild(createSvgElement("path", { d: `M ${boxX + 5} ${boxY + 5} L ${boxX + 23} ${boxY + 23} M ${boxX + 23} ${boxY + 5} L ${boxX + 5} ${boxY + 23}`, stroke: "#f1d39d", opacity: 0.55, "aria-hidden": "true" }));
+        }
     });
     (level.enemies || []).forEach((enemy) => renderEnemy(svgCanvas, enemy, tileSize));
     const doorX = level.door.x * tileSize + 5;

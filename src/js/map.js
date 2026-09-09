@@ -56,10 +56,13 @@ const SEWER_BOXES = Object.freeze([
 const SEWER_PROPS = Object.freeze([
     { type: "grate", x: 0, y: 6, blocking: false },
     { type: "grate", x: 9, y: 3, blocking: false },
-    { type: "lamp", x: 1, y: 9, blocking: false },
+    { type: "lantern", x: 1, y: 9, blocking: false },
     { type: "debris", x: 6, y: 6, blocking: true },
-    { type: "debris", x: 8, y: 3, blocking: true },
-    { type: "barrel", x: 9, y: 7, blocking: true }
+    { type: "debris", x: 8, y: 3, blocking: true }
+]);
+
+const SEWER_BARRELS = Object.freeze([
+    { x: 9, y: 7, containerType: "barrel", ouro: 0 }
 ]);
 
 function copyItems(items, levelNumber = 1) {
@@ -91,8 +94,13 @@ export function createLevel(number = 1) {
     const boxes = baseBoxes.map((box) => {
         const loot = generateContainerLoot({ source: "box", biome: isSewer ? "sewers" : "ruins", tier: "common", level: levelNumber, rng: boxLootRng });
         loot.gold += box.ouro;
-        return { ...box, tier: "common", loot };
+        return { ...box, containerType: "box", tier: "common", loot };
     });
+    const barrels = (isSewer ? SEWER_BARRELS : []).map((barrel) => ({
+        ...barrel,
+        tier: "common",
+        loot: generateContainerLoot({ source: "barrel", biome: "sewers", tier: "common", level: levelNumber, rng: boxLootRng })
+    }));
     const enemyData = isSewer ? createSewerEnemies() : { enemies: [], enemyLoot: [] };
     return {
         number: levelNumber,
@@ -107,7 +115,7 @@ export function createLevel(number = 1) {
         water: copyItems(isSewer ? SEWER_WATER : []),
         props: copyItems(isSewer ? SEWER_PROPS : []),
         door: { x: 9, y: 10 },
-        boxes,
+        boxes: [...boxes, ...barrels],
         enemies: enemyData.enemies,
         enemyLoot: enemyData.enemyLoot
     };

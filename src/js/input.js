@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playRatDeath, playSlimeBossDeath, playSlimeHit, playSpiderDeath, playSpiderHit, playStandardHit, playLargeSlimePlayerHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=menu-sfx4";
+import { playAirBuff, playAirOffensive, playBarrelBreak, playBoxBreak, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playRatDeath, playSlimeBossDeath, playSlimeHit, playSpiderDeath, playSpiderHit, playStandardHit, playLargeSlimePlayerHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=containers1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -204,7 +204,9 @@ function move(state, directionName, announce, render) {
     const newY = state.player.y + vector.dy;
     if (!isInside(state.level, newX, newY)) { announce(m(state, "boundary")); return; }
     if (isBlocked(state.level, newX, newY)) {
-        const reason = isDoor(state.level, newX, newY) ? m(state, "doorAhead") : getEnemyAt(state.level, newX, newY) ? m(state, "enemyAhead") : getBoxAt(state.level, newX, newY) ? m(state, "boxAhead") : isWater(state.level, newX, newY) ? m(state, "waterAhead") : getPropAt(state.level, newX, newY) ? m(state, "objectAhead") : "";
+        const prop = getPropAt(state.level, newX, newY);
+        const container = getBoxAt(state.level, newX, newY);
+        const reason = isDoor(state.level, newX, newY) ? m(state, "doorAhead") : getEnemyAt(state.level, newX, newY) ? m(state, "enemyAhead") : container ? ` ${containerLabel(state, container)}${m(state, "blocksPath")}` : isWater(state.level, newX, newY) ? m(state, "waterAhead") : prop ? ` ${propLabel(state, prop)}${m(state, "blocksPath")}` : "";
         announce(`${m(state, "blocked")} ${direction(state, directionName)}.${reason}`); return;
     }
     state.player.x = newX; state.player.y = newY;
@@ -239,9 +241,9 @@ function scan(state, announce) {
             if (!isInside(state.level, x, y) || checked.has(key)) continue; checked.add(key);
             if (isWall(state.level, x, y)) found.push(scanPoint(state, m(state, "scanWall"), x, y));
             else if (isWater(state.level, x, y)) found.push(scanPoint(state, m(state, "scanWater"), x, y));
-            else if (getBoxAt(state.level, x, y)) found.push(scanPoint(state, m(state, "scanBox"), x, y));
+            else if (getBoxAt(state.level, x, y)) { const container = getBoxAt(state.level, x, y); found.push(scanPoint(state, containerLabel(state, container), x, y)); }
             else if (getEnemyAt(state.level, x, y)) { const enemy = getEnemyAt(state.level, x, y); found.push(scanPoint(state, enemyLabel(state, enemy), x, y)); }
-            else if (getPropAt(state.level, x, y)) found.push(scanPoint(state, m(state, "scanObject"), x, y));
+            else if (getPropAt(state.level, x, y)) found.push(scanPoint(state, propLabel(state, getPropAt(state.level, x, y)), x, y));
             else if (isDoor(state.level, x, y)) found.push(scanPoint(state, m(state, "scanDoor"), x, y));
         }
     }
@@ -249,6 +251,8 @@ function scan(state, announce) {
 }
 
 function enemyLabel(state, enemy) { return getText(state.language, enemy.nameKey || `enemies.species.${enemy.species}`); }
+function propLabel(state, prop) { return getText(state.language, `gameplay.props.${prop.type}`); }
+function containerLabel(state, container) { return container.containerType === "barrel" ? getText(state.language, "gameplay.barrel") : getText(state.language, "gameplay.box"); }
 
 function playLootItemSound(item) {
     if (item.category === "consumable") playPotionPickup();
@@ -284,7 +288,14 @@ function collectContainerLoot(state, container) {
     const loot = container.loot;
     if (!loot) return "";
     const found = [];
-    if (loot.source === "chest") playChest();
+    if (container.containerType === "barrel") playBarrelBreak();
+    else if (loot.source === "chest") playChest();
+    else playBoxBreak();
+    (loot.materials || []).forEach((material) => {
+        state.player.craftingMaterials[material.materialId] = (state.player.craftingMaterials[material.materialId] || 0) + material.quantity;
+        if (material.materialId === "wood") playWoodMaterialDrop();
+        found.push(`${material.quantity} ${getText(state.language, material.nameKey)}`);
+    });
     (loot.items || []).forEach((item) => { state.player.inventory.push(item); playLootItemSound(item); found.push(`${m(state, "enemyItem")}: ${itemDisplayName(state, item)}`); });
     if (loot.gold) { state.player.stats.ouro += loot.gold; playCoin(); found.push(`${loot.gold} ${t(state, "gold")}`); }
     return found.length ? `${m(state, "containerLoot")}: ${found.join(", ")}.` : "";
@@ -337,7 +348,7 @@ function attack(state, announce, render) {
         const enemy = getEnemyAt(state.level, x, y);
         if (enemy) { attackEnemy(state, enemy, weapon, pendingAttack, announce, render); return; }
         const box = getBoxAt(state.level, x, y);
-        if (box) { const lootText = collectContainerLoot(state, box); removeBox(state.level, box); state.player.skillState.pendingAttack = null; announce(withEnemyReactions(state, `${t(state, "box")} X ${x}, Y ${y} ${m(state, "destroyed")}. ${lootText} ${m(state, "total")}: ${state.player.stats.ouro}.${bonusText}`)); render(); return; }
+        if (box) { const lootText = collectContainerLoot(state, box); removeBox(state.level, box); state.player.skillState.pendingAttack = null; announce(withEnemyReactions(state, `${containerLabel(state, box)} X ${x}, Y ${y} ${m(state, "destroyed")}. ${lootText} ${m(state, "total")}: ${state.player.stats.ouro}.${bonusText}`)); render(); return; }
     }
     state.player.skillState.pendingAttack = null;
     announce(withEnemyReactions(state, `${m(state, "attackDone")} ${itemName(state, weapon.nome)}.${bonusText} ${m(state, "noTarget")}`));

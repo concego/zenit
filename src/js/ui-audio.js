@@ -12,6 +12,8 @@ const SOUND_IDS = Object.freeze({
     potionUse: "inventoryPotionUseSound",
     potionPickup: "inventoryPotionPickupSound",
     chest: "worldChestSound",
+    boxBreak: "boxBreakSound",
+    barrelBreak: "barrelBreakSound",
     woodDoorOpen: "woodDoorOpenSound",
     woodDoorClose: "woodDoorCloseSound",
     airBuff: "airBuffSound",
@@ -82,6 +84,8 @@ export function playMetalArmor() { playSound("metalArmor"); }
 export function playPotionUse() { playSound("potionUse"); }
 export function playPotionPickup() { playSound("potionPickup"); }
 export function playChest() { playSound("chest"); }
+export function playBoxBreak() { playSound("boxBreak"); }
+export function playBarrelBreak() { playSound("barrelBreak"); }
 export function playWoodDoorOpen() { playSound("woodDoorOpen"); }
 export function playWoodDoorClose() { playSound("woodDoorClose"); }
 export function playLockedMetal() { playSound("lockedMetal"); }

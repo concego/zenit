@@ -6,9 +6,9 @@ import { MAP_BIOMES, MAP_BIOME_LIST, MAP_TIERS, MAP_TIER_LIST } from "./map-data
 const ITEM_TIER_LIST = Object.freeze(Object.values(ITEM_TIERS));
 
 const CONTAINER_RULES = Object.freeze({
-    box: Object.freeze({ itemChance: 0.7, minimumItems: 0, maximumItems: 1, goldChance: 0, goldMin: 0, goldMax: 0, categoryWeights: { consumable: 3, tool: 2, equipment: 1 } }),
-    crate: Object.freeze({ itemChance: 0.75, minimumItems: 0, maximumItems: 1, goldChance: 0.55, goldMin: 2, goldMax: 8, categoryWeights: { consumable: 3, tool: 3, equipment: 1, weapon: 1 } }),
-    barrel: Object.freeze({ itemChance: 0.65, minimumItems: 0, maximumItems: 1, goldChance: 0.4, goldMin: 1, goldMax: 6, categoryWeights: { consumable: 5, tool: 1 } }),
+    box: Object.freeze({ itemChance: 0.7, minimumItems: 0, maximumItems: 1, goldChance: 0, goldMin: 0, goldMax: 0, woodChance: 0.25, woodMin: 1, woodMax: 2, categoryWeights: { consumable: 3, tool: 2, equipment: 1 } }),
+    crate: Object.freeze({ itemChance: 0.75, minimumItems: 0, maximumItems: 1, goldChance: 0.55, goldMin: 2, goldMax: 8, woodChance: 0.25, woodMin: 1, woodMax: 2, categoryWeights: { consumable: 3, tool: 3, equipment: 1, weapon: 1 } }),
+    barrel: Object.freeze({ itemChance: 0.65, minimumItems: 0, maximumItems: 1, goldChance: 0.4, goldMin: 1, goldMax: 6, woodChance: 0.5, woodMin: 1, woodMax: 2, categoryWeights: { consumable: 5, tool: 1 } }),
     chest: Object.freeze({ itemChance: 1, minimumItems: 1, maximumItems: 2, goldChance: 0.9, goldMin: 8, goldMax: 25, categoryWeights: { consumable: 2, tool: 2, equipment: 4, weapon: 3 } }),
     altar: Object.freeze({ itemChance: 1, minimumItems: 1, maximumItems: 1, goldChance: 0.25, goldMin: 3, goldMax: 12, categoryWeights: { consumable: 2, equipment: 4, weapon: 2 } })
 });
@@ -75,7 +75,11 @@ export function generateContainerLoot({ source = "crate", biome = "sewers", tier
         const baseGold = rule.goldMin + Math.floor(random() * (rule.goldMax - rule.goldMin + 1));
         gold = Math.max(0, Math.round(baseGold * selectedMapTier.lootMultiplier));
     }
-    return { source, biome: selectedBiome.id, mapTier: selectedMapTier.id, items, gold, exceptions };
+    const materials = [];
+    if (rule.woodChance && random() <= rule.woodChance) {
+        materials.push({ materialId: "wood", nameKey: "materials.wood", quantity: rule.woodMin + Math.floor(random() * (rule.woodMax - rule.woodMin + 1)) });
+    }
+    return { source, biome: selectedBiome.id, mapTier: selectedMapTier.id, items, materials, gold, exceptions };
 }
 
 export function getContainerRule(source) { return CONTAINER_RULES[source] || null; }
