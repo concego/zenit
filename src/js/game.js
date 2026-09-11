@@ -1,6 +1,6 @@
 // Ponto de entrada e estado principal do Zenit.
 
-import { installInput } from "./input.js?v=containers1";
+import { installInput } from "./input.js?v=tome1";
 import { installFrontInput } from "./frontend-input.js?v=menu-files1";
 import { createLevel } from "./map.js";
 import { createPlayer } from "./player.js";

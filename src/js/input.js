@@ -2,7 +2,7 @@
 import { createLevel, getBoxAt, getEnemyAt, getPropAt, isBlocked, isDoor, isInside, isNearWater, isStoneSurface, isWall, isWater, isWoodSurface, removeBox, removeEnemy } from "./map.js";
 import { CLASSES, getDirectionVector, initializePlayerStats, resetPlayerPosition } from "./player.js";
 import { getText } from "./i18n.js";
-import { playAirBuff, playAirOffensive, playBarrelBreak, playBoxBreak, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playRatDeath, playSlimeBossDeath, playSlimeHit, playSpiderDeath, playSpiderHit, playStandardHit, playLargeSlimePlayerHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=containers1";
+import { playAirBuff, playAirOffensive, playBarrelBreak, playBoxBreak, playBowDrop, playChest, playCoin, playCoinDrop, playFireMagic, playLeatherArmor, playMeleeSwing, playMenuCancel, playMenuConfirm, playMenuScroll, playMetalArmor, playMysticSpell, playPlayerFootstep, playStoneFootstep, playWetFootstep, playWoodFootstep, playPlaceholderMagicCast, playPoisonAttack, playPotionPickup, playRangedMiss, playRatDeath, playSlimeBossDeath, playSlimeHit, playSpiderDeath, playSpiderHit, playStandardHit, playLargeSlimePlayerHit, playWeaponUnsheathe, playWoodMaterialDrop, playWoodDoorClose, playWoodDoorOpen } from "./ui-audio.js?v=tome1";
 import { assignSkillHotkey, canLearnSkill, getSkillAssignedSlot, getSkillEffect, learnSkill, useSkillHotkey } from "./skill-generator.js";
 import { calculateDamage, getAttackPower, getCriticalChance, getDodgeChance, getHitChance } from "./balance.js";
 import { runEnemyTurn } from "./enemy-ai.js";
@@ -26,6 +26,7 @@ function itemDisplayName(state, item) {
 }
 
 const MAIN_MENU = ["status", "inventory", "equipment", "skills"];
+const TOME_MENU = ["keyboard"];
 const STATUS_MENU = ["class", "power", "coordination", "mind", "hp", "stamina", "mana", "gold"];
 
 function skillsMenu(state) { return state.player.skills?.skills?.map((skill) => skill.id) || []; }
@@ -53,6 +54,9 @@ function equipmentDetail(state, player, option) {
     const name = item ? `${itemDisplayName(state, item)} (${t(state, "range")}: ${range})` : t(state, "empty");
     return `${t(state, option)}: ${name}.`;
 }
+
+function tomeCategoryLabel(state, option) { return getText(state.language, `gameplay.help.categories.${option}`); }
+function tomeCategoryDetail(state, option) { return option === "keyboard" ? getText(state.language, "gameplay.help.keyboard") : tomeCategoryLabel(state, option); }
 
 function skillTranslationKey(skill) { return skill.id || skill.nameKey?.split(".").pop() || "unknown"; }
 function skillLabel(state, skill) { return getText(state.language, `skills.names.${skillTranslationKey(skill)}`); }
@@ -372,7 +376,7 @@ function toggleWeapon(state, announce) {
 
 function handleMenuKey(state, event, announce) {
     const { key } = event;
-    const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : state.gameState === "MENU_HABILIDADES" ? skillsMenu(state) : MAIN_MENU;
+    const menu = state.gameState === "MENU_STATUS" ? STATUS_MENU : state.gameState === "MENU_EQUIPAMENTO" ? EQUIPMENT_MENU : state.gameState === "MENU_HABILIDADES" ? skillsMenu(state) : state.gameState === "MENU_TOMO" || state.gameState === "MENU_TOMO_ATALHOS" ? TOME_MENU : MAIN_MENU;
     if (state.gameState === "MENU_HABILIDADES" && /^[0-9]$/.test(key)) {
         const skillId = skillsMenu(state)[state.menuIndex];
         const skill = state.player.skills.skills.find((item) => item.id === skillId);
@@ -386,18 +390,28 @@ function handleMenuKey(state, event, announce) {
         const increment = key === "ArrowDown" ? 1 : -1;
         state.menuIndex = (state.menuIndex + increment + menu.length) % menu.length;
         const option = menu[state.menuIndex];
-        announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : state.gameState === "MENU_HABILIDADES" ? skillDetail(state, option) : t(state, option));
+        announce(state.gameState === "MENU_STATUS" ? statusDetail(state, state.player, option) : state.gameState === "MENU_EQUIPAMENTO" ? equipmentDetail(state, state.player, option) : state.gameState === "MENU_HABILIDADES" ? skillDetail(state, option) : state.gameState === "MENU_TOMO" ? tomeCategoryLabel(state, option) : state.gameState === "MENU_TOMO_ATALHOS" ? tomeCategoryDetail(state, option) : t(state, option));
         return true;
     }
     if (key === "Escape") {
         playMenuCancel();
         const previous = state.gameState;
         if (previous === "MENU_PRINCIPAL") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); }
+        else if (previous === "MENU_TOMO") { state.gameState = "NORMAL"; announce(`${state.player.x},${state.player.y}`); }
+        else if (previous === "MENU_TOMO_ATALHOS") { state.gameState = "MENU_TOMO"; state.menuIndex = 0; announce(`${t(state, "instructionTome")}. ${tomeCategoryLabel(state, TOME_MENU[0])}. ${m(state, "tomeChoose")}`); }
         else {
             state.gameState = "MENU_PRINCIPAL";
             state.menuIndex = previous === "MENU_STATUS" ? 0 : previous === "MENU_HABILIDADES" ? 3 : 2;
             announce(`${t(state, "mainMenu")}. ${m(state, "option")}: ${t(state, MAIN_MENU[state.menuIndex])}.`);
         }
+        return true;
+    }
+    if (state.gameState === "MENU_TOMO" && key === "Enter") {
+        playMenuConfirm();
+        const option = TOME_MENU[state.menuIndex];
+        state.gameState = "MENU_TOMO_ATALHOS";
+        state.menuIndex = 0;
+        announce(`${tomeCategoryLabel(state, option)}. ${tomeCategoryDetail(state, option)}`);
         return true;
     }
     if (state.gameState === "MENU_PRINCIPAL" && key === "Enter") {
@@ -423,8 +437,9 @@ export function installInput({ state, announce, render }) {
     function onKeyDown(event) {
         if (state.gameState.startsWith("FRONT_")) return;
         if (state.gameState !== "NORMAL") { if (handleMenuKey(state, event, announce)) event.preventDefault(); return; }
-        const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isNumberHotkey = /^[0-9]$/.test(key); const isGameKey = isArrow || isNumberHotkey || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey) event.preventDefault();
-        if (isNumberHotkey) useAssignedSkill(state, key, announce, render);
+        const key = event.key; const lowerKey = key.toLowerCase(); const isArrow = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"].includes(key); const isNumberHotkey = /^[0-9]$/.test(key); const isGameKey = isArrow || isNumberHotkey || ["a", "c", "enter", "s", "t", "w"].includes(lowerKey); if (isGameKey || key === "F1") event.preventDefault();
+        if (key === "F1") { state.gameState = "MENU_TOMO"; state.menuIndex = 0; announce(`${t(state, "instructionTome")}. ${tomeCategoryLabel(state, TOME_MENU[0])}. ${m(state, "tomeChoose")}`); }
+        else if (isNumberHotkey) useAssignedSkill(state, key, announce, render);
         else if (lowerKey === "s") scan(state, announce);
         else if (lowerKey === "c") { state.gameState = "MENU_PRINCIPAL"; state.menuIndex = 0; announce(`${t(state, "mainMenu")}. ${m(state, "menuHint")}`); }
         else if (lowerKey === "t") announce(`${m(state, "looking")} ${direction(state, state.player.dir)}.`);
